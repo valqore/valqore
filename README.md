@@ -11,7 +11,13 @@
 
 Valqore is an infrastructure governance engine that scans Kubernetes manifests, Terraform configurations, and cloud resources — then returns a **score (0-100)** and a **verdict** (PASS, PASS_WITH_MONITORING, or BLOCK).
 
-1,262 built-in rules. No configuration needed. Runs anywhere Docker runs.
+1,262 built-in rules across security, cost, **carbon/sustainability (GreenOps)**, compliance, and AI governance. No configuration needed. Runs anywhere Docker runs.
+
+**Key differentiators:**
+- **GreenOps built-in** — CO2e emissions per workload, greener region suggestions, carbon budgets, GPU emissions tracking. 77 cloud regions with grid carbon intensity data.
+- **AI Scan** — one command runs evaluate + drift detection + AI-powered explanation. The AI image includes a fine-tuned model that runs fully offline — your code never leaves the container.
+- **Interactive chat** — ask Valqore questions about your scan results in natural language. Get remediation advice, compliance mapping, and cost optimization tips through a conversational interface.
+- **AI Governance** — detect ungoverned AI/ML workloads, enforce EU AI Act compliance, and gate model promotions to production.
 
 ---
 
@@ -258,6 +264,21 @@ docker run --rm \
 
 Available packs: `hipaa`, `soc2`, `pci_dss`, `gdpr`, `eu_ai_act`, `nist_ai_rmf`, `owasp_llm`, `iso_42001`, `cis`, `dora`, `fedramp`, `nist_csf`
 
+### GreenOps — carbon tracking
+
+Every `evaluate --score` includes carbon estimates automatically:
+
+```
+Carbon: 0.182 kg CO2e/mo (aws:us-east-1)
+```
+
+Valqore tracks CO2e emissions per workload using grid carbon intensity data across 77 cloud regions. It suggests greener regions, enforces carbon budgets, and tracks GPU embodied emissions. The what-if commands show carbon impact too:
+
+```
+=== What-If: Migrate to Graviton (ARM) ===
+  Carbon:  0.29 kg -> 0.09 kg (-69.5%)
+```
+
 ### AI-powered scan (evaluate + drift + explanation)
 
 ```bash
@@ -271,7 +292,63 @@ docker run --rm \
     --state /workspace/terraform.tfstate --cloud aws
 ```
 
-Runs evaluate + drift detection + AI explanation in one command. Uses the embedded fine-tuned model — no API calls, fully offline.
+One command does everything: evaluates your manifests, detects drift against live cloud, and generates an AI-powered explanation with prioritized remediation steps. Uses the embedded fine-tuned model — your code never leaves the container, no API calls, fully offline.
+
+Output:
+```
+Valqore AI Scan
+
+Step 1/3: Evaluating manifests...
+  Score: 84/100 (B) | Verdict: BLOCK
+  Rules: 495 | Fail: 28 | Warn: 84
+
+Step 2/3: Detecting drift...
+  3 resources drifted
+
+Step 3/3: Generating AI analysis...
+
+  ## Key findings:
+  - SP-007: Container running in privileged mode -- full host access
+  - NET-012: LoadBalancer without NetworkPolicy on backend
+  - CC-153: Missing cost allocation tags
+
+  ## Remediation:
+  1. Remove privileged: true and add capabilities.drop: ['ALL']
+  2. Create NetworkPolicy restricting ingress to port 8080
+  3. Add cost-center, team, environment labels
+```
+
+### Chat — ask questions about your infrastructure
+
+```bash
+docker run --rm -it \
+  -v valqore-data:/home/valqore/.valqore \
+  -v $(pwd):/workspace \
+  valqore/engine:1.0.0-ai chat /workspace/deploy.yaml
+```
+
+Start an interactive conversation about your scan results:
+
+```
+You: What are the most critical issues?
+Valqore: You have 2 CRITICAL findings that must be fixed immediately:
+  1. SP-007: Container 'api' is running in privileged mode...
+  2. NET-012: LoadBalancer without NetworkPolicy...
+
+You: How do I fix the privileged container?
+Valqore: Remove privileged: true and add a restrictive security context:
+  securityContext:
+    privileged: false
+    runAsNonRoot: true
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop: ["ALL"]
+
+You: Is this HIPAA compliant?
+Valqore: Your current configuration fails 1 of 7 HIPAA controls...
+```
+
+The chat uses the embedded fine-tuned AI model. Everything runs locally inside the container — no data leaves your machine.
 
 ### Check license status
 
@@ -391,13 +468,16 @@ docker run --rm \
 
 ## What Valqore Covers
 
-- **Security** — container hardening, RBAC, encryption, network policies, supply chain
-- **Cost** — waste detection, right-sizing, FinOps governance, billing analysis, budget gates
-- **Carbon** — CO2e tracking, greener region suggestions, 77 regions, GPU emissions
-- **Compliance** — HIPAA, SOC 2, PCI-DSS, GDPR, EU AI Act, ISO 42001, NIST, CIS, and more
-- **AI Governance** — AI workload detection, model promotion gates, EU AI Act risk classification
-- **Drift** — Terraform state vs live cloud, change attribution, continuous monitoring
-- **Multi-Cloud** — AWS, Azure, GCP, Kubernetes
+| Category | What It Does |
+|----------|-------------|
+| **Security** | Container hardening, RBAC, encryption, network policies, supply chain, attack path analysis |
+| **Cost & FinOps** | Waste detection, right-sizing, billing analysis (AWS/Azure/GCP), budget gates, cost simulation |
+| **GreenOps** | CO2e per workload, greener region suggestions, carbon budgets, GPU emissions, 77 regions with grid intensity data |
+| **Compliance** | 12 packs: HIPAA, SOC 2, PCI-DSS, GDPR, EU AI Act, ISO 42001, NIST, CIS, DORA, FedRAMP, and more |
+| **AI Governance** | Shadow AI detection, EU AI Act risk classification, model promotion gates, GPU cost/carbon tracking |
+| **Drift Detection** | Terraform state vs live cloud, CloudTrail attribution, continuous monitoring with Slack alerts |
+| **AI Scan & Chat** | One-command scan with AI explanation, interactive chat for remediation advice — fully offline |
+| **Multi-Cloud** | AWS, Azure, GCP, and any Kubernetes cluster. Read-only — never modifies your infrastructure |
 
 ---
 
