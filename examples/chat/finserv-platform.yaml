@@ -1,0 +1,107 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: transaction-processor
+  namespace: financial
+  labels:
+    app: transaction-processor
+    compliance: pci-dss
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: transaction-processor
+  template:
+    metadata:
+      labels:
+        app: transaction-processor
+    spec:
+      containers:
+      - name: processor
+        image: mycompany/txn-processor:v4.0
+        ports:
+        - containerPort: 8443
+        env:
+        - name: CARD_ENCRYPTION_KEY
+          value: "card-enc-key-prod-xyz"
+        - name: HSM_PIN
+          value: "hsm-access-pin-9876"
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "4"
+          limits:
+            memory: "8Gi"
+            cpu: "8"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fraud-detection
+  namespace: financial
+  labels:
+    app: fraud-detection
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: fraud-detection
+  template:
+    metadata:
+      labels:
+        app: fraud-detection
+    spec:
+      containers:
+      - name: ml-model
+        image: mycompany/fraud-model:v2.3
+        resources:
+          requests:
+            memory: "16Gi"
+            cpu: "8"
+            nvidia.com/gpu: "1"
+          limits:
+            memory: "32Gi"
+            cpu: "16"
+            nvidia.com/gpu: "1"
+        securityContext:
+          privileged: true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: compliance-reporter
+  namespace: financial
+  labels:
+    app: compliance-reporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: compliance-reporter
+  template:
+    metadata:
+      labels:
+        app: compliance-reporter
+    spec:
+      containers:
+      - name: reporter
+        image: python:3.11
+        command: ["python", "reporter.py"]
+        env:
+        - name: REGULATOR_API_KEY
+          value: "reg-api-prod-key"
+        - name: DATABASE_URL
+          value: "postgresql://root:finpass123@db:5432/compliance"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: transaction-processor
+  namespace: financial
+spec:
+  type: LoadBalancer
+  selector:
+    app: transaction-processor
+  ports:
+  - port: 443
+    targetPort: 8443

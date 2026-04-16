@@ -1,0 +1,116 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: patient-api
+  namespace: healthcare
+  labels:
+    app: patient-api
+    compliance: hipaa
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: patient-api
+  template:
+    metadata:
+      labels:
+        app: patient-api
+    spec:
+      containers:
+      - name: api
+        image: mycompany/patient-api:v3.1
+        ports:
+        - containerPort: 8443
+        env:
+        - name: DB_CONNECTION
+          value: "postgresql://admin:health123@db:5432/patients"
+        - name: ENCRYPTION_KEY
+          value: "aes-256-key-prod-2024"
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "1"
+          limits:
+            memory: "2Gi"
+            cpu: "2"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ehr-integration
+  namespace: healthcare
+  labels:
+    app: ehr-integration
+    compliance: hipaa
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ehr-integration
+  template:
+    metadata:
+      labels:
+        app: ehr-integration
+    spec:
+      containers:
+      - name: ehr
+        image: mycompany/ehr-connector:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: EHR_API_KEY
+          value: "ehr-prod-key-abc123"
+        - name: FHIR_ENDPOINT
+          value: "https://ehr.hospital.org/fhir/r4"
+        securityContext:
+          runAsUser: 0
+          privileged: true
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: audit-logger
+  namespace: healthcare
+  labels:
+    app: audit-logger
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: audit-logger
+  template:
+    metadata:
+      labels:
+        app: audit-logger
+    spec:
+      containers:
+      - name: logger
+        image: elasticsearch:8.11.0
+        ports:
+        - containerPort: 9200
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2"
+          limits:
+            memory: "8Gi"
+            cpu: "4"
+        volumeMounts:
+        - name: audit-data
+          mountPath: /usr/share/elasticsearch/data
+      volumes:
+      - name: audit-data
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: patient-api
+  namespace: healthcare
+spec:
+  type: LoadBalancer
+  selector:
+    app: patient-api
+  ports:
+  - port: 443
+    targetPort: 8443

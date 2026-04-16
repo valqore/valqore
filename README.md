@@ -464,6 +464,64 @@ docker run --rm \
 | Azure Web App | [examples/azure/](examples/azure/) | App Service + SQL + Storage. TLS 1.0, public SQL, secrets in app settings. |
 | GCP GKE | [examples/gcp/](examples/gcp/) | GKE + Cloud SQL + Firewall. Legacy ABAC, public DB, allow-all firewall. |
 
+### GreenOps Scenarios
+
+Compare carbon impact — same workload, different configurations:
+
+| File | What It Shows |
+|------|--------------|
+| [greenops/high-carbon-deployment.yaml](examples/greenops/high-carbon-deployment.yaml) | 10 GPU replicas + 20 batch workers in us-east-1. High carbon footprint, oversized resources. |
+| [greenops/low-carbon-deployment.yaml](examples/greenops/low-carbon-deployment.yaml) | Right-sized, eu-north-1 (hydro/nuclear), carbon budget set, fewer replicas. |
+
+```bash
+# Compare the two
+docker run --rm -v valqore-data:/home/valqore/.valqore \
+  -v $(pwd)/examples:/workspace \
+  valqore/engine:1.0.0 evaluate /workspace/greenops/high-carbon-deployment.yaml --score
+
+docker run --rm -v valqore-data:/home/valqore/.valqore \
+  -v $(pwd)/examples:/workspace \
+  valqore/engine:1.0.0 evaluate /workspace/greenops/low-carbon-deployment.yaml --score
+```
+
+### AI Scan Scenarios
+
+Full-stack app with K8s + Terraform — run `ai-scan` to get evaluate + drift + AI explanation in one shot:
+
+| File | What It Shows |
+|------|--------------|
+| [ai-scan/multi-tier-app.yaml](examples/ai-scan/multi-tier-app.yaml) | Frontend + API + workers + DB + Redis. Hardcoded secrets, root user, AWS keys in env. |
+| [ai-scan/infra.tf](examples/ai-scan/infra.tf) | EKS + RDS + S3 + IAM. Public EKS, unencrypted DB, admin IAM policy, open security group. |
+
+```bash
+# AI Scan — evaluates everything and explains findings
+docker run --rm -v valqore-data:/home/valqore/.valqore \
+  -v $(pwd)/examples:/workspace \
+  valqore/engine:1.0.0-ai ai-scan /workspace/ai-scan/
+```
+
+### Chat Scenarios
+
+Scan these files, then start a chat to ask questions — great for compliance-heavy environments:
+
+| File | What It Shows |
+|------|--------------|
+| [chat/healthcare-api.yaml](examples/chat/healthcare-api.yaml) | Patient API + EHR integration + audit logger. HIPAA-relevant: secrets in env, privileged EHR connector, audit logs on emptyDir. |
+| [chat/finserv-platform.yaml](examples/chat/finserv-platform.yaml) | Transaction processor + fraud ML + compliance reporter. PCI-DSS relevant: card encryption keys in env, privileged GPU fraud model. |
+
+```bash
+# Scan first, then chat about findings
+docker run --rm -it -v valqore-data:/home/valqore/.valqore \
+  -v $(pwd)/examples:/workspace \
+  valqore/engine:1.0.0-ai chat /workspace/chat/healthcare-api.yaml
+
+# Try asking:
+#   "Is this HIPAA compliant?"
+#   "What are the biggest risks?"
+#   "How do I fix the secrets?"
+#   "Generate a compliance report"
+```
+
 ---
 
 ## What Valqore Covers
@@ -478,6 +536,7 @@ docker run --rm \
 | **Drift Detection** | Terraform state vs live cloud, CloudTrail attribution, continuous monitoring with Slack alerts |
 | **AI Scan & Chat** | One-command scan with AI explanation, interactive chat for remediation advice — fully offline |
 | **Multi-Cloud** | AWS, Azure, GCP, and any Kubernetes cluster. Read-only — never modifies your infrastructure |
+| **Dashboard** | Web-based dashboard for visualizing scores, trends, and team-wide governance — *coming soon* |
 
 ---
 
