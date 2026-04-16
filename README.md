@@ -3,6 +3,7 @@
 > **The convergence platform for cloud governance. One scan. One score. One verdict.**
 
 [![Website](https://img.shields.io/badge/website-valqore.io-blue)](https://www.valqore.io)
+[![Docker](https://img.shields.io/badge/docker-valqore%2Fengine-2496ED?logo=docker)](https://hub.docker.com/r/valqore/engine)
 [![Rules](https://img.shields.io/badge/rules-1,262-brightgreen)]()
 [![Status](https://img.shields.io/badge/status-Early%20Access-orange)]()
 [![License](https://img.shields.io/badge/license-All%20Rights%20Reserved-red)](LICENSE)
@@ -193,6 +194,32 @@ See [docs/use-cases.md](docs/use-cases.md) for detailed examples.
 See [ROADMAP.md](ROADMAP.md) for the full roadmap.
 
 **Current status: Early Access — building in public.**
+
+---
+
+## Quick Start
+
+```bash
+# Pull the image
+docker pull valqore/engine:1.0.0
+
+# Activate your license
+docker volume create valqore-data
+docker run --rm -v valqore-data:/home/valqore/.valqore \
+  valqore/engine:1.0.0 activate YOUR_LICENSE_KEY
+
+# Scan your first file
+docker run --rm \
+  -v valqore-data:/home/valqore/.valqore \
+  -v $(pwd):/workspace \
+  valqore/engine:1.0.0 evaluate /workspace/deploy.yaml --score
+```
+
+Two image variants:
+- `valqore/engine:1.0.0` — standard (626 MB)
+- `valqore/engine:1.0.0-ai` — with embedded AI model for offline explanations (2.5 GB)
+
+See [docs/GETTING-STARTED.md](docs/GETTING-STARTED.md) for the full onboarding guide.
 
 ---
 
