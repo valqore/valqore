@@ -1,0 +1,94 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: video-transcoder
+  namespace: production
+  labels:
+    app: video-transcoder
+  annotations:
+    valqore.io/cloud-provider: aws
+    valqore.io/cloud-region: us-east-1
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: video-transcoder
+  template:
+    metadata:
+      labels:
+        app: video-transcoder
+    spec:
+      containers:
+      - name: transcoder
+        image: mycompany/transcoder:v2.1
+        resources:
+          requests:
+            memory: "16Gi"
+            cpu: "8"
+            nvidia.com/gpu: "2"
+          limits:
+            memory: "32Gi"
+            cpu: "16"
+            nvidia.com/gpu: "2"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: batch-processor
+  namespace: production
+  labels:
+    app: batch-processor
+  annotations:
+    valqore.io/cloud-provider: aws
+    valqore.io/cloud-region: us-east-1
+spec:
+  replicas: 20
+  selector:
+    matchLabels:
+      app: batch-processor
+  template:
+    metadata:
+      labels:
+        app: batch-processor
+    spec:
+      containers:
+      - name: processor
+        image: mycompany/batch:v1.0
+        resources:
+          requests:
+            memory: "8Gi"
+            cpu: "4"
+          limits:
+            memory: "16Gi"
+            cpu: "8"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: analytics-engine
+  namespace: production
+  labels:
+    app: analytics
+  annotations:
+    valqore.io/cloud-provider: aws
+    valqore.io/cloud-region: us-east-1
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: analytics
+  template:
+    metadata:
+      labels:
+        app: analytics
+    spec:
+      containers:
+      - name: analytics
+        image: mycompany/analytics:latest
+        resources:
+          requests:
+            memory: "32Gi"
+            cpu: "16"
+          limits:
+            memory: "64Gi"
+            cpu: "32"

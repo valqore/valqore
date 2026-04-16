@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: video-transcoder
+  namespace: production
+  labels:
+    app: video-transcoder
+    team: media
+    cost-center: engineering
+  annotations:
+    valqore.io/cloud-provider: aws
+    valqore.io/cloud-region: eu-north-1
+    valqore.io/carbon-budget: "50"
+    valqore.io/cost-baseline: "true"
+    valqore.io/budget-monthly: "3000"
+spec:
+  replicas: 5
+  selector:
+    matchLabels:
+      app: video-transcoder
+  template:
+    metadata:
+      labels:
+        app: video-transcoder
+        team: media
+    spec:
+      serviceAccountName: transcoder
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: transcoder
+        image: mycompany/transcoder:v2.1@sha256:abc123
+        resources:
+          requests:
+            memory: "8Gi"
+            cpu: "4"
+            nvidia.com/gpu: "1"
+          limits:
+            memory: "16Gi"
+            cpu: "8"
+            nvidia.com/gpu: "1"
+        securityContext:
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: batch-processor
+  namespace: production
+  labels:
+    app: batch-processor
+    team: media
+    cost-center: engineering
+  annotations:
+    valqore.io/cloud-provider: aws
+    valqore.io/cloud-region: eu-north-1
+    valqore.io/cost-baseline: "true"
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: batch-processor
+  template:
+    metadata:
+      labels:
+        app: batch-processor
+        team: media
+    spec:
+      serviceAccountName: batch-processor
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: processor
+        image: mycompany/batch:v1.0@sha256:def456
+        resources:
+          requests:
+            memory: "4Gi"
+            cpu: "2"
+          limits:
+            memory: "8Gi"
+            cpu: "4"
+        securityContext:
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+      topologySpreadConstraints:
+      - maxSkew: 1
+        topologyKey: topology.kubernetes.io/zone
+        whenUnsatisfiable: DoNotSchedule
+        labelSelector:
+          matchLabels:
+            app: batch-processor
