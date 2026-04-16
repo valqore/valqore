@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: order-matching-engine
+  namespace: trading
+  labels:
+    app: matching-engine
+    compliance: pci-dss
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: matching-engine
+  template:
+    metadata:
+      labels:
+        app: matching-engine
+    spec:
+      containers:
+      - name: engine
+        image: internal/matching-engine:v5.2
+        ports:
+        - containerPort: 9090
+        resources:
+          requests:
+            memory: "32Gi"
+            cpu: "16"
+          limits:
+            memory: "64Gi"
+            cpu: "32"
+        securityContext:
+          privileged: true
+          runAsUser: 0
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: market-data-feed
+  namespace: trading
+  labels:
+    app: market-data
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: market-data
+  template:
+    metadata:
+      labels:
+        app: market-data
+    spec:
+      containers:
+      - name: feed
+        image: internal/market-data:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: EXCHANGE_API_KEY
+          value: "ex-api-key-prod-2024"
+        - name: EXCHANGE_API_SECRET
+          value: "ex-secret-key-prod-abc123"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: risk-calculator
+  namespace: trading
+  labels:
+    app: risk-calculator
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: risk-calculator
+  template:
+    metadata:
+      labels:
+        app: risk-calculator
+    spec:
+      containers:
+      - name: risk
+        image: python:3.11
+        command: ["python", "risk_engine.py"]
+        resources:
+          requests:
+            memory: "8Gi"
+            cpu: "4"
+            nvidia.com/gpu: "1"
+          limits:
+            memory: "16Gi"
+            cpu: "8"
+            nvidia.com/gpu: "1"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: matching-engine
+  namespace: trading
+spec:
+  type: LoadBalancer
+  selector:
+    app: matching-engine
+  ports:
+  - port: 443
+    targetPort: 9090

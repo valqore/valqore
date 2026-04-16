@@ -59,24 +59,53 @@ Two image variants:
 
 ## Examples
 
-Try scanning these with Valqore — compare insecure vs secure versions to see the score difference:
+Clone the repo and scan any folder. Each scenario contains realistic infrastructure with intentional misconfigurations for Valqore to catch.
 
-### Kubernetes
+```bash
+git clone https://github.com/valqore/public.git
+cd public
 
-| File | Score | What It Tests |
-|------|-------|--------------|
-| [insecure-deploy.yaml](examples/insecure-deploy.yaml) | ~84 (B) | Privileged container, unpinned image, no NetworkPolicy |
-| [secure-deploy.yaml](examples/secure-deploy.yaml) | ~97 (A) | Hardened security context, NetworkPolicy, topology spread |
-| [microservices-stack.yaml](examples/microservices-stack.yaml) | ~55 (D) | Hardcoded secrets, no resource limits, privileged containers |
-| [ai-workload.yaml](examples/ai-workload.yaml) | AI gate: BLOCK | Ungoverned GPU workload, missing AI governance annotations |
-| [gpu-ml-training.yaml](examples/gpu-ml-training.yaml) | AI gate: PASS | Proper AI annotations, kill switch, human oversight |
+# Scan any example
+docker run --rm \
+  -v valqore-data:/home/valqore/.valqore \
+  -v $(pwd)/examples:/workspace \
+  valqore/engine:1.0.0 evaluate /workspace/ecommerce/ --score
+```
 
-### Terraform
+### Basics — Secure vs Insecure
 
-| File | Score | What It Tests |
-|------|-------|--------------|
-| [insecure-terraform.tf](examples/insecure-terraform.tf) | ~71 (C) | Public RDS, open security group, unencrypted S3, no state locking |
-| [secure-terraform.tf](examples/secure-terraform.tf) | ~95 (A) | Encrypted storage, private subnets, Graviton instances, DynamoDB locking |
+| File | Expected Score | What Valqore Catches |
+|------|---------------|---------------------|
+| [basics/insecure-deploy.yaml](examples/basics/insecure-deploy.yaml) | ~84 (B) | Privileged container, unpinned image, no NetworkPolicy |
+| [basics/secure-deploy.yaml](examples/basics/secure-deploy.yaml) | ~97 (A) | Hardened version of the same deployment |
+| [basics/insecure-terraform.tf](examples/basics/insecure-terraform.tf) | ~71 (C) | Public RDS, open security group, unencrypted S3 |
+| [basics/secure-terraform.tf](examples/basics/secure-terraform.tf) | ~95 (A) | Encrypted, private, Graviton, DynamoDB locking |
+| [basics/ai-workload.yaml](examples/basics/ai-workload.yaml) | AI gate: BLOCK | Ungoverned GPU workload |
+| [basics/gpu-ml-training.yaml](examples/basics/gpu-ml-training.yaml) | AI gate: PASS | Proper AI governance annotations |
+| [basics/microservices-stack.yaml](examples/basics/microservices-stack.yaml) | ~55 (D) | Hardcoded secrets, no limits, privileged |
+
+### Real-World Scenarios
+
+#### E-Commerce Platform (`examples/ecommerce/`)
+Storefront + cart + payment gateway + database. Common mistakes: hardcoded Stripe keys in env vars, payment service running privileged, database on emptyDir, public RDS, open security group.
+
+#### SaaS Multi-Tenant Backend (`examples/saas-platform/`)
+API gateway + auth + tenant service + workers. Common mistakes: JWT secrets in plain text, unpinned images, no network segmentation between tenants.
+
+#### Data Pipeline (`examples/data-pipeline/`)
+Kafka + Spark + Elasticsearch + ETL cron job. Common mistakes: AWS credentials hardcoded in env, Spark running as root, Elasticsearch privileged, stateful data on emptyDir.
+
+#### Startup MVP (`examples/startup-mvp/`)
+Single-pod Node.js app with MongoDB sidecar. Common mistakes: MongoDB connection string with password in env, database on emptyDir, default namespace, NodePort exposure.
+
+#### Fintech Trading Platform (`examples/fintech/`)
+Order matching engine + market data feed + risk calculator with GPU. Common mistakes: privileged trading engine, API keys in env, public database, no encryption, single-AZ database for a trading system.
+
+#### Azure Web App (`examples/azure/`)
+App Service + SQL Server + Storage Account. Common mistakes: TLS 1.0, FTPS allowed, public SQL server, storage with public access, secrets in app settings.
+
+#### GCP GKE Cluster (`examples/gcp/`)
+GKE cluster + Cloud SQL + Storage + Firewall. Common mistakes: legacy ABAC enabled, overly broad OAuth scopes, public Cloud SQL, firewall allowing all inbound.
 
 ---
 
