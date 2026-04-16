@@ -1,0 +1,68 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-training
+  namespace: ml-platform
+  labels:
+    app: llm-training
+    team: ml-research
+  annotations:
+    valqore.io/ai-registered: "true"
+    valqore.io/ai-risk-level: "high"
+    valqore.io/human-oversight: "required"
+    valqore.io/kill-switch: "enabled"
+    valqore.io/model-version: "gpt-finetune-v3.2"
+    valqore.io/cost-baseline: "true"
+    valqore.io/budget-monthly: "5000"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: llm-training
+  template:
+    metadata:
+      labels:
+        app: llm-training
+        team: ml-research
+    spec:
+      serviceAccountName: ml-training
+      containers:
+      - name: trainer
+        image: pytorch/pytorch:2.3.0-cuda12.1-cudnn8-runtime@sha256:abc123
+        resources:
+          requests:
+            memory: "32Gi"
+            cpu: "8"
+            nvidia.com/gpu: "4"
+          limits:
+            memory: "64Gi"
+            cpu: "16"
+            nvidia.com/gpu: "4"
+        securityContext:
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+        env:
+        - name: WANDB_PROJECT
+          value: "llm-finetune"
+        - name: REQUEST_TIMEOUT
+          value: "3600"
+        volumeMounts:
+        - name: training-data
+          mountPath: /data
+          readOnly: true
+        - name: checkpoints
+          mountPath: /checkpoints
+      volumes:
+      - name: training-data
+        persistentVolumeClaim:
+          claimName: training-dataset
+      - name: checkpoints
+        persistentVolumeClaim:
+          claimName: model-checkpoints
+      tolerations:
+      - key: nvidia.com/gpu
+        operator: Exists
+        effect: NoSchedule
