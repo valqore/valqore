@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-api
+  namespace: production
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web-api
+  template:
+    metadata:
+      labels:
+        app: web-api
+    spec:
+      containers:
+      - name: api
+        image: nginx:1.21
+        ports:
+        - containerPort: 8080
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "250m"
+          limits:
+            memory: "256Mi"
+            cpu: "500m"
+        securityContext:
+          runAsNonRoot: false
+          privileged: true
+      - name: sidecar
+        image: redis:latest
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-api
+  namespace: production
+spec:
+  type: LoadBalancer
+  selector:
+    app: web-api
+  ports:
+  - port: 80
+    targetPort: 8080
