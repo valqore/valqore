@@ -62,7 +62,7 @@ Two image variants:
 Clone the repo and scan any folder. Each scenario contains realistic infrastructure with intentional misconfigurations for Valqore to catch.
 
 ```bash
-git clone https://github.com/valqore/public.git
+git clone https://github.com/valqore/valqore.git
 cd public
 
 # Scan any example
