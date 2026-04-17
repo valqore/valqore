@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-inference
+  namespace: ml-production
+  labels:
+    app: llm-inference
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: llm-inference
+  template:
+    metadata:
+      labels:
+        app: llm-inference
+    spec:
+      containers:
+      - name: inference
+        image: vllm/vllm-openai:v0.6.3
+        ports:
+        - containerPort: 8000
+        env:
+        - name: MODEL
+          value: "meta-llama/Llama-3.1-70B-Instruct"
+        - name: OPENAI_API_KEY
+          value: "sk-proj-abc123xyz-DONT-DO-THIS"
+        resources:
+          requests:
+            memory: "80Gi"
+            cpu: "16"
+            nvidia.com/gpu: "2"
+          limits:
+            memory: "160Gi"
+            cpu: "32"
+            nvidia.com/gpu: "2"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: agent-orchestrator
+  namespace: ml-production
+  labels:
+    app: agent-orchestrator
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: agent-orchestrator
+  template:
+    metadata:
+      labels:
+        app: agent-orchestrator
+    spec:
+      containers:
+      - name: agent
+        image: langchain/langchain-agent:latest
+        env:
+        - name: LLM_ENDPOINT
+          value: "http://llm-inference:8000"
+        - name: MAX_ITERATIONS
+          value: "unlimited"
+        - name: ANTHROPIC_API_KEY
+          value: "sk-ant-api-abc123-DONT-DO-THIS"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: llm-inference
+  namespace: ml-production
+spec:
+  type: LoadBalancer
+  selector:
+    app: llm-inference
+  ports:
+  - port: 80
+    targetPort: 8000

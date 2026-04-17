@@ -1,0 +1,86 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: llm-inference
+  namespace: ml-production
+  labels:
+    app: llm-inference
+    team: ml-platform
+    cost-center: engineering
+  annotations:
+    valqore.io/ai-registered: "true"
+    valqore.io/ai-risk-level: "high"
+    valqore.io/human-oversight: "required"
+    valqore.io/kill-switch: "enabled"
+    valqore.io/model-name: "meta-llama/Llama-3.1-70B-Instruct"
+    valqore.io/model-version: "v1.0.0"
+    valqore.io/ml-framework: "vllm"
+    valqore.io/explainability-method: "token-probabilities"
+    valqore.io/audit-logging: "enabled"
+    valqore.io/cost-baseline: "true"
+    valqore.io/budget-monthly: "15000"
+    valqore.io/data-classification: "public-web-corpus"
+    valqore.io/bias-tested: "2026-03-15"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: llm-inference
+  template:
+    metadata:
+      labels:
+        app: llm-inference
+        team: ml-platform
+    spec:
+      serviceAccountName: llm-inference
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+      - name: inference
+        image: vllm/vllm-openai:v0.6.3@sha256:abc123
+        ports:
+        - containerPort: 8000
+        env:
+        - name: MODEL
+          value: "meta-llama/Llama-3.1-70B-Instruct"
+        envFrom:
+        - secretRef:
+            name: llm-api-credentials
+        resources:
+          requests:
+            memory: "80Gi"
+            cpu: "16"
+            nvidia.com/gpu: "1"
+          limits:
+            memory: "120Gi"
+            cpu: "24"
+            nvidia.com/gpu: "1"
+        securityContext:
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop: ["ALL"]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: llm-inference-egress
+  namespace: ml-production
+spec:
+  podSelector:
+    matchLabels:
+      app: llm-inference
+  policyTypes:
+  - Egress
+  egress:
+  - to:
+    - namespaceSelector:
+        matchLabels:
+          name: monitoring
+    ports:
+    - port: 9090
