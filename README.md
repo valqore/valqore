@@ -4,7 +4,7 @@
 
 [![Website](https://img.shields.io/badge/website-valqore.io-blue)](https://www.valqore.io)
 [![Docker](https://img.shields.io/badge/docker-valqore%2Fengine-2496ED?logo=docker)](https://hub.docker.com/r/valqore/engine)
-[![Rules](https://img.shields.io/badge/rules-1,343-brightgreen)]()
+[![Rules](https://img.shields.io/badge/rules-1,347-brightgreen)]()
 [![Compliance Packs](https://img.shields.io/badge/compliance%20packs-16-blueviolet)]()
 [![Blog](https://img.shields.io/badge/blog-blog.valqore.io-black)](https://blog.valqore.io)
 
@@ -12,7 +12,7 @@
 
 Valqore is an infrastructure governance engine that scans Kubernetes manifests, Terraform configurations, and cloud resources — then returns a **score (0-100)** and a **verdict** (PASS, PASS_WITH_MONITORING, or BLOCK).
 
-**1,343 built-in rules** across security, cost, **carbon/sustainability (GreenOps)**, compliance, and AI governance, organised into **16 compliance packs** (including OWASP Top 10 for Agentic Applications 2026, EU AI Act Annex III, CRA, DORA, SOC2, HIPAA, FedRAMP, SR 11-7, and PQC Migration / CNSA 2.0). No configuration needed. Runs anywhere Docker runs.
+**1,347 built-in rules** across security, cost, **carbon/sustainability (GreenOps)**, compliance, and AI governance, organised into **16 compliance packs** (including OWASP Top 10 for Agentic Applications 2026, EU AI Act Annex III, CRA, DORA, SOC2, HIPAA, FedRAMP, SR 11-7, and PQC Migration / CNSA 2.0). No configuration needed. Runs anywhere Docker runs.
 
 ## Five ways to run Valqore
 
@@ -22,7 +22,7 @@ Valqore is an infrastructure governance engine that scans Kubernetes manifests, 
 | **K8s admission control** | `helm install` from [`valqore-stack`](https://github.com/valqore/valqore-operator/tree/main/charts/valqore-stack) | Cluster-wide enforcement via native `ValidatingAdmissionPolicy` |
 | **VS Code extension** | [`valqore-vscode`](https://github.com/valqore/valqore-vscode) `.vsix` | Real-time CodeLens + hover + quick-fix in YAML / Terraform / Helm |
 | **Freelens K8s IDE** | [`freelens-valqore`](https://github.com/valqore/freelens-valqore) extension | Resource-detail panels + cluster overview + right-click policy checks |
-| **MCP for Claude / Cursor** | `valqore mcp` | 128 governance tools your AI assistant can call |
+| **MCP for Claude / Cursor** | `valqore mcp` | 134 governance tools your AI assistant can call |
 
 ## 30-second cluster install (Kubernetes-native)
 
@@ -73,7 +73,7 @@ Two variants available:
 
 | Image | Size | Description |
 |-------|------|-------------|
-| `valqore/engine:1.4.0` | 626 MB | Standard — all 1,343 rules, scoring, drift, billing, compliance |
+| `valqore/engine:1.4.0` | 626 MB | Standard — all 1,347 rules, scoring, drift, billing, compliance |
 | `valqore/engine:1.4.0-ai` | 2.5 GB | Everything above + embedded AI model for offline explanations |
 
 ### Step 2: Create a persistent volume
