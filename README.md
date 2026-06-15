@@ -4,7 +4,7 @@
 
 [![Website](https://img.shields.io/badge/website-valqore.io-blue)](https://www.valqore.io)
 [![Docker](https://img.shields.io/badge/docker-valqore%2Fengine-2496ED?logo=docker)](https://hub.docker.com/r/valqore/engine)
-[![Rules](https://img.shields.io/badge/rules-1,347-brightgreen)]()
+[![Rules](https://img.shields.io/badge/rules-1,370-brightgreen)]()
 [![Compliance Packs](https://img.shields.io/badge/compliance%20packs-16-blueviolet)]()
 [![Blog](https://img.shields.io/badge/blog-blog.valqore.io-black)](https://blog.valqore.io)
 
@@ -12,7 +12,7 @@
 
 Valqore is an infrastructure governance engine that scans Kubernetes manifests, Terraform configurations, and cloud resources — then returns a **score (0-100)** and a **verdict** (PASS, PASS_WITH_MONITORING, or BLOCK).
 
-**1,347 built-in rules** across security, cost, **carbon/sustainability (GreenOps)**, compliance, and AI governance, organised into **16 compliance packs** (including OWASP Top 10 for Agentic Applications 2026, EU AI Act Annex III, CRA, DORA, SOC2, HIPAA, FedRAMP, SR 11-7, and PQC Migration / CNSA 2.0). No configuration needed. Runs anywhere Docker runs.
+**1,370 built-in rules** across security, cost, **carbon/sustainability (GreenOps)**, compliance, and AI governance, organised into **16 compliance packs** (including OWASP Top 10 for Agentic Applications 2026, EU AI Act Annex III, CRA, DORA, SOC2, HIPAA, FedRAMP, SR 11-7, and PQC Migration / CNSA 2.0). No configuration needed. Runs anywhere Docker runs.
 
 ## Five ways to run Valqore
 
@@ -53,6 +53,7 @@ Flip `action: Warn` → `action: Deny` when you're confident, then watch the API
 - **AI Scan** — one command runs evaluate + drift detection + AI-powered explanation. The AI image includes a fine-tuned model that runs fully offline — your code never leaves the container.
 - **Interactive chat** — ask Valqore questions about your scan results in natural language. Get remediation advice, compliance mapping, and cost optimization tips through a conversational interface.
 - **AI Governance** — detect ungoverned AI/ML workloads, enforce EU AI Act compliance, and gate model promotions to production.
+- **AI agent fleet governance** — `agent-audit` discovers the AI agents already running in your manifests, cluster, or cloud and scores each one's governance posture across five dimensions, then rolls up to a GOVERNED / PARTIAL / UNGOVERNED fleet verdict and exports it as auditor-ready OSCAL. The answer to "who governs the agents now governing your infra?"
 
 ---
 
@@ -73,7 +74,7 @@ Two variants available:
 
 | Image | Size | Description |
 |-------|------|-------------|
-| `valqore/engine:1.4.0` | 626 MB | Standard — all 1,347 rules, scoring, drift, billing, compliance |
+| `valqore/engine:1.4.0` | 626 MB | Standard — all 1,370 rules, scoring, drift, billing, compliance |
 | `valqore/engine:1.4.0-ai` | 2.5 GB | Everything above + embedded AI model for offline explanations |
 
 ### Step 2: Create a persistent volume
@@ -273,6 +274,43 @@ Output:
   Result: BLOCKED -- 4 of 5 gates failing
 ```
 
+### AI agent fleet governance audit
+
+Score the governance posture of every AI agent in your manifests, cluster, or cloud:
+
+```bash
+docker run --rm \
+  -v valqore-data:/home/valqore/.valqore \
+  -v $(pwd):/workspace \
+  valqore/engine:1.4.0 agent-audit /workspace/
+```
+
+Output:
+```
+=== AI Agent Governance Posture ===
+  Fleet: 2 agent(s) -- UNGOVERNED -- 0 governed / 2 with gaps -- avg score 45.9/100
+
+  Agent                 Identity  Guardrails  Boundary  Oversight  Supply Chain
+  research-agent (ai)   FAIL      FAIL        --        FAIL       PASS
+  ops-agent (ai)        PASS      FAIL        FAIL      --         PASS
+```
+
+Add `--format oscal -o agentgov.json` for an auditor-ready evidence pack where each dimension maps to a control.
+
+### Shift-left cost gate
+
+Block a change in CI before deploy on a $/mo ceiling or a delta-vs-baseline:
+
+```bash
+docker run --rm \
+  -v valqore-data:/home/valqore/.valqore \
+  -v $(pwd):/workspace \
+  valqore/engine:1.4.0 finops cost-gate /workspace/proposed/ \
+    --baseline /workspace/current/ --max-delta 500
+```
+
+Exit code 1 when the change adds more than $500/mo over the baseline — cost *prevention* in the PR, not a dashboard after the bill lands.
+
 ### Container image audit
 
 ```bash
@@ -297,7 +335,7 @@ docker run --rm \
   valqore/engine:1.4.0 evidence hipaa -f /workspace/
 ```
 
-Available packs: `hipaa`, `soc2`, `pci_dss`, `gdpr`, `eu_ai_act`, `nist_ai_rmf`, `owasp_llm`, `iso_42001`, `cis`, `dora`, `fedramp`, `nist_csf`
+All 16 packs: `hipaa`, `soc2`, `pci_dss`, `gdpr`, `iso27001`, `iso_42001`, `eu_ai_act`, `nist_csf`, `nist_ai_rmf`, `owasp_llm`, `owasp_agentic`, `dora`, `fedramp`, `sr_11_7`, `cra`, `pqc_migration`. Add `-f oscal` to any pack for machine-readable NIST OSCAL evidence.
 
 ### GreenOps — carbon tracking
 
@@ -566,8 +604,9 @@ docker run --rm -it -v valqore-data:/home/valqore/.valqore \
 | **Security** | Container hardening, RBAC, encryption, network policies, supply chain, attack path analysis |
 | **Cost & FinOps** | Waste detection, right-sizing, billing analysis (AWS/Azure/GCP), budget gates, cost simulation |
 | **GreenOps** | CO2e per workload, greener region suggestions, carbon budgets, GPU emissions, 77 regions with grid intensity data |
-| **Compliance** | 12 packs: HIPAA, SOC 2, PCI-DSS, GDPR, EU AI Act, ISO 42001, NIST, CIS, DORA, FedRAMP, and more |
+| **Compliance** | 16 packs: HIPAA, SOC 2, PCI-DSS, GDPR, EU AI Act, ISO 42001, NIST AI RMF, OWASP LLM/Agentic, CIS, DORA, FedRAMP, SR 11-7, CRA, PQC, and more — each exportable as machine-readable **NIST OSCAL** evidence |
 | **AI Governance** | Shadow AI detection, EU AI Act risk classification, model promotion gates, GPU cost/carbon tracking |
+| **AI Agent Fleet Governance** | `agent-audit` discovers AI agents across manifests/cluster/cloud and scores each one's posture (identity, guardrails, boundary, oversight, model supply chain) into a GOVERNED / PARTIAL / UNGOVERNED fleet verdict — exportable as OSCAL. Plus a runtime MCP gate for live agent tool calls |
 | **Drift Detection** | Terraform state vs live cloud, CloudTrail attribution, continuous monitoring with Slack alerts |
 | **AI Scan & Chat** | One-command scan with AI explanation, interactive chat for remediation advice — fully offline |
 | **Multi-Cloud** | AWS, Azure, GCP, and any Kubernetes cluster. Read-only — never modifies your infrastructure |
