@@ -75,7 +75,7 @@ Two variants available:
 | Image | Size | Description |
 |-------|------|-------------|
 | `valqore/engine:1.5.0` | 626 MB | Standard — all 1,370 rules, scoring, drift, billing, compliance |
-| `valqore/engine:1.5.0-ai` | 2.5 GB | Everything above + embedded AI model for offline explanations. Available on request -- email tunc@valqore.io |
+| `valqore/engine:1.5.0-ai` | 2.5 GB | Everything above + embedded AI model for offline explanations |
 
 ### Step 2: Create a persistent volume
 
