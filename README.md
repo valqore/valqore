@@ -124,6 +124,29 @@ That's it. You're scanning infrastructure.
 
 ---
 
+## Verify image authenticity (supply chain)
+
+Every published image is cryptographically signed and carries an SPDX SBOM, so you can prove exactly what you're running. Install [cosign](https://docs.sigstore.dev/cosign/system_config/installation/), then:
+
+**Standard image** (`valqore/engine:1.5.0`) — keyless-signed in CI via Sigstore (GitHub OIDC + Rekor):
+
+```bash
+cosign verify valqore/engine:1.5.0 \
+  --certificate-identity-regexp 'https://github.com/valqore/valqore-engine/.*' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+```
+
+**AI image** (`valqore/engine:1.5.0-ai`) — signed with Valqore's release key ([`cosign.pub`](cosign.pub)):
+
+```bash
+cosign verify --key cosign.pub --insecure-ignore-tlog valqore/engine:1.5.0-ai
+cosign verify-attestation --key cosign.pub --insecure-ignore-tlog --type spdxjson valqore/engine:1.5.0-ai
+```
+
+Both checks confirm the image hasn't been tampered with since publish. The SBOM (SPDX) enumerates every component in the image for vulnerability scanning and audit.
+
+---
+
 ## What You Can Do
 
 ### Scan Kubernetes manifests
