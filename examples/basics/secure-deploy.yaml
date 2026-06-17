@@ -11,6 +11,25 @@ metadata:
   annotations:
     valqore.io/cost-baseline: "true"
     valqore.io/budget-monthly: "500"
+    valqore.io/budget-approved: "true"
+    # Incident-prevention gates (OH-062/068/070)
+    valqore.io/destructive-ops-gated: "true"
+    valqore.io/rollback-strategy: "blue-green"
+    valqore.io/upgrade-strategy: "rolling-surge"
+    # EU CRA (CMP-021/022/024 + product identity)
+    valqore.io/security-contact: "security@acme.example"
+    valqore.io/cvd-policy: "https://acme.example/security/disclosure"
+    valqore.io/sbom-url: "https://acme.example/sbom/web-api.spdx.json"
+    valqore.io/manufacturer: "Acme Corp"
+    valqore.io/responsible-entity: "Acme Platform Team"
+    valqore.io/support-window: "2026-01-01/2029-01-01"
+    valqore.io/cra-conformity: "self-assessed"
+    # EU DORA (CMP-027/030 + resilience)
+    valqore.io/dora-register-id: "ICT-REG-2026-0042"
+    valqore.io/dora-criticality: "important"
+    valqore.io/dora-incident-class: "major-ict-disruption"
+    valqore.io/dora-resilience-test: "2026-03-15"
+    valqore.io/dora-exit-strategy: "documented"
 spec:
   replicas: 3
   selector:

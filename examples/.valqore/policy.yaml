@@ -1,0 +1,16 @@
+# Example Valqore promotion policy.
+#
+# A realistic "ship with a plan" posture: hard-BLOCK on CRITICAL findings and a
+# minimum Valqore Score; HIGH findings are must-fix-soon but don't hard-block.
+# Tune fail_on / min_score / max_high per environment to match your risk appetite.
+#
+# Usage:
+#   valqore env-evaluate <path> -e production --policy examples/.valqore/policy.yaml
+environments:
+  prod:                      # 'production' normalizes to 'prod'
+    fail_on: CRITICAL        # block only on critical findings
+    min_score: 50            # require a passing Valqore Score
+    max_critical: 0          # zero criticals allowed
+    max_high: 50             # highs are tracked, not hard-blocked
+    block_on_regression: false
+    regression_threshold: 0
