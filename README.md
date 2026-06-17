@@ -538,15 +538,17 @@ docker run --rm \
 
 ### Basics — Secure vs Insecure
 
-| File | Expected Score | What Valqore Catches |
-|------|---------------|---------------------|
-| [basics/insecure-deploy.yaml](examples/basics/insecure-deploy.yaml) | ~84 (B) | Privileged container, unpinned image, no NetworkPolicy |
-| [basics/secure-deploy.yaml](examples/basics/secure-deploy.yaml) | ~97 (A) | Hardened version of the same deployment |
-| [basics/insecure-terraform.tf](examples/basics/insecure-terraform.tf) | ~71 (C) | Public RDS, open security group, unencrypted S3 |
-| [basics/secure-terraform.tf](examples/basics/secure-terraform.tf) | ~95 (A) | Encrypted, private, Graviton, DynamoDB locking |
+| File | Score\* | What Valqore catches |
+|------|--------|---------------------|
+| [basics/insecure-deploy.yaml](examples/basics/insecure-deploy.yaml) | 28 / F · BLOCK | Privileged container, unpinned image, no NetworkPolicy |
+| [basics/secure-deploy.yaml](examples/basics/secure-deploy.yaml) | 50 / F · BLOCK | Hardened version — far fewer, lower-severity findings |
+| [basics/insecure-terraform.tf](examples/basics/insecure-terraform.tf) | 46 / F · BLOCK | Public RDS, open security group, unencrypted S3 |
+| [basics/secure-terraform.tf](examples/basics/secure-terraform.tf) | 70 / C · BLOCK | Encrypted, private, Graviton, DynamoDB locking |
 | [basics/ai-workload.yaml](examples/basics/ai-workload.yaml) | AI gate: BLOCK | Ungoverned GPU workload |
 | [basics/gpu-ml-training.yaml](examples/basics/gpu-ml-training.yaml) | AI gate: PASS | Proper AI governance annotations |
-| [basics/microservices-stack.yaml](examples/basics/microservices-stack.yaml) | ~55 (D) | Hardcoded secrets, no limits, privileged |
+| [basics/microservices-stack.yaml](examples/basics/microservices-stack.yaml) | 10 / F · BLOCK | Hardcoded secrets, no limits, privileged |
+
+\*Scores reflect Valqore's **strict default policy** — most real-world workloads BLOCK until hardened. The point of each pair is the *relative* improvement: the secure variants score markedly higher with far fewer, lower-severity findings. Tune thresholds per environment with `.valqore/policy.yaml`.
 
 ### Real-World Scenarios
 
