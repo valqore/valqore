@@ -18,7 +18,12 @@ findings — which is what makes the output suitable as compliance evidence.
   change a PASS/FAIL/BLOCK. We call this the sealed loop.
 - **No probabilistic guardrail in the decision path.** There is no LLM-as-judge
   deciding whether your infrastructure is compliant. That is a design choice:
-  regulators and auditors need reproducibility, not a model's opinion.
+  regulators and auditors need reproducibility, not a model's opinion. A growing
+  class of AI security tools *reasons* about risk with frontier models — useful
+  for triage, but you cannot hand an auditor an LLM's reasoning as reproducible
+  evidence, and the same input can yield a different verdict next run. Valqore's
+  verdict is the same every time and maps to an explicit, versioned rule — which
+  is what makes it admissible as compliance evidence.
 - **Honest about missing data.** When a rule needs telemetry it doesn't have
   (e.g. live utilisation for an over-provisioning check), it reports
   **`NOT_ASSESSED`** rather than a misleading PASS, and that count is shown
