@@ -147,6 +147,13 @@ Both checks confirm the image hasn't been tampered with since publish. The SBOM 
 
 ---
 
+## Security & trust
+
+- **[TRUST.md](TRUST.md)** — how the deterministic engine decides, what Valqore does (and doesn't) do with your data, self-hosted/no-egress posture, supply-chain integrity, and an honest in-place-vs-planned status.
+- **[SECURITY.md](SECURITY.md)** — coordinated vulnerability disclosure policy, private reporting channels, response targets, and safe harbor.
+
+---
+
 ## What You Can Do
 
 ### Scan Kubernetes manifests
