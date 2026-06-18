@@ -6,8 +6,13 @@
 #
 # Usage:
 #   valqore env-evaluate <path> -e production --policy examples/.valqore/policy.yaml
+#
+# Graduated rollout: set enforcement_mode (or pass --mode) to ramp a gate in
+# safely — observe (never blocks, records what would block) -> warn (never
+# blocks, surfaces violations) -> enforce (blocks on violation; the default).
 environments:
   prod:                      # 'production' normalizes to 'prod'
+    enforcement_mode: enforce  # observe | warn | enforce — start at observe when rolling out
     fail_on: CRITICAL        # block only on critical findings
     min_score: 50            # require a passing Valqore Score
     max_critical: 0          # zero criticals allowed
