@@ -11,8 +11,10 @@ private channels:
 1. **GitHub private vulnerability reporting** (preferred) — on this repository,
    go to **Security → Report a vulnerability**. This opens a private advisory
    only you and the maintainers can see.
-2. **Email** — `security@valqore.io` (or `tunc@valqore.io`). Encrypt with our
-   PGP key if you prefer; request it in a first, low-detail message.
+   <!-- Enable this at: repo Settings → Code security → Private vulnerability reporting -->
+
+2. **Email** — `tunc@valqore.io`. Encrypt with our PGP key if you prefer;
+   request it in a first, low-detail message.
 
 Please include, where possible:
 
