@@ -18,7 +18,7 @@ Valqore is an infrastructure governance engine that scans Kubernetes manifests, 
 
 | Surface | Install | Best for |
 |---|---|---|
-| **CLI / Docker** | `docker run valqore/engine:1.5.0 evaluate manifest.yaml` | Local checks, CI pipelines |
+| **CLI / Docker** | `docker run valqore/engine:1.5.1 evaluate manifest.yaml` | Local checks, CI pipelines |
 | **K8s admission control** | `helm install` from [`valqore-stack`](https://github.com/valqore/valqore-operator/tree/main/charts/valqore-stack) | Cluster-wide enforcement via native `ValidatingAdmissionPolicy` |
 | **VS Code extension** | [`valqore-vscode`](https://github.com/valqore/valqore-vscode) `.vsix` | Real-time CodeLens + hover + quick-fix in YAML / Terraform / Helm |
 | **Freelens K8s IDE** | [`freelens-valqore`](https://github.com/valqore/freelens-valqore) extension | Resource-detail panels + cluster overview + right-click policy checks |
@@ -67,15 +67,15 @@ Flip `action: Warn` → `action: Deny` when you're confident, then watch the API
 ### Step 1: Pull the image
 
 ```bash
-docker pull valqore/engine:1.5.0
+docker pull valqore/engine:1.5.1
 ```
 
 Two variants available:
 
 | Image | Size | Description |
 |-------|------|-------------|
-| `valqore/engine:1.5.0` | 626 MB | Standard — all 1,370 rules, scoring, drift, billing, compliance |
-| `valqore/engine:1.5.0-ai` | 2.5 GB | Everything above + embedded AI model for offline explanations |
+| `valqore/engine:1.5.1` | 626 MB | Standard — all 1,370 rules, scoring, drift, billing, compliance |
+| `valqore/engine:1.5.1-ai` | 2.5 GB | Everything above + embedded AI model for offline explanations |
 
 ### Step 2: Create a persistent volume
 
@@ -89,7 +89,7 @@ This stores your license. Use `-v valqore-data:/home/valqore/.valqore` on every 
 
 ```bash
 docker run --rm -v valqore-data:/home/valqore/.valqore \
-  valqore/engine:1.5.0 activate YOUR_LICENSE_KEY
+  valqore/engine:1.5.1 activate YOUR_LICENSE_KEY
 ```
 
 Output:
@@ -106,7 +106,7 @@ License activated!
 docker run --rm \
   -v valqore-data:/home/valqore/.valqore \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.0 evaluate /workspace/deploy.yaml --score
+  valqore/engine:1.5.1 evaluate /workspace/deploy.yaml --score
 ```
 
 Output:
@@ -128,19 +128,19 @@ That's it. You're scanning infrastructure.
 
 Every published image is cryptographically signed and carries an SPDX SBOM, so you can prove exactly what you're running. Install [cosign](https://docs.sigstore.dev/cosign/system_config/installation/), then:
 
-**Standard image** (`valqore/engine:1.5.0`) — keyless-signed in CI via Sigstore (GitHub OIDC + Rekor):
+**Standard image** (`valqore/engine:1.5.1`) — keyless-signed in CI via Sigstore (GitHub OIDC + Rekor):
 
 ```bash
-cosign verify valqore/engine:1.5.0 \
+cosign verify valqore/engine:1.5.1 \
   --certificate-identity-regexp 'https://github.com/valqore/valqore-engine/.*' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```
 
-**AI image** (`valqore/engine:1.5.0-ai`) — signed with Valqore's release key ([`cosign.pub`](cosign.pub)):
+**AI image** (`valqore/engine:1.5.1-ai`) — signed with Valqore's release key ([`cosign.pub`](cosign.pub)):
 
 ```bash
-cosign verify --key cosign.pub --insecure-ignore-tlog valqore/engine:1.5.0-ai
-cosign verify-attestation --key cosign.pub --insecure-ignore-tlog --type spdxjson valqore/engine:1.5.0-ai
+cosign verify --key cosign.pub --insecure-ignore-tlog valqore/engine:1.5.1-ai
+cosign verify-attestation --key cosign.pub --insecure-ignore-tlog --type spdxjson valqore/engine:1.5.1-ai
 ```
 
 Both checks confirm the image hasn't been tampered with since publish. The SBOM (SPDX) enumerates every component in the image for vulnerability scanning and audit.
@@ -162,7 +162,7 @@ Both checks confirm the image hasn't been tampered with since publish. The SBOM 
 docker run --rm \
   -v valqore-data:/home/valqore/.valqore \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.0 evaluate /workspace/kubernetes/ --score
+  valqore/engine:1.5.1 evaluate /workspace/kubernetes/ --score
 ```
 
 ### Scan Terraform files
@@ -171,7 +171,7 @@ docker run --rm \
 docker run --rm \
   -v valqore-data:/home/valqore/.valqore \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.0 evaluate /workspace/main.tf --score
+  valqore/engine:1.5.1 evaluate /workspace/main.tf --score
 ```
 
 ### Scan an entire directory
@@ -180,7 +180,7 @@ docker run --rm \
 docker run --rm \
   -v valqore-data:/home/valqore/.valqore \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.0 evaluate /workspace/ --score
+  valqore/engine:1.5.1 evaluate /workspace/ --score
 ```
 
 ### Cost simulation — what if we migrate to Graviton?
@@ -189,7 +189,7 @@ docker run --rm \
 docker run --rm \
   -v valqore-data:/home/valqore/.valqore \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.0 what-if /workspace/deploy.yaml --graviton
+  valqore/engine:1.5.1 what-if /workspace/deploy.yaml --graviton
 ```
 
 Output:
@@ -205,7 +205,7 @@ Output:
 docker run --rm \
   -v valqore-data:/home/valqore/.valqore \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.0 what-if /workspace/deploy.yaml --spot-ratio 70
+  valqore/engine:1.5.1 what-if /workspace/deploy.yaml --spot-ratio 70
 ```
 
 ### Check cloud billing (AWS)
@@ -216,7 +216,7 @@ docker run --rm \
   -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
   -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
   -e AWS_DEFAULT_REGION=us-east-1 \
-  valqore/engine:1.5.0 finops billing --cloud aws --daily --days 30
+  valqore/engine:1.5.1 finops billing --cloud aws --daily --days 30
 ```
 
 Output:
@@ -239,7 +239,7 @@ docker run --rm \
   -e AZURE_CLIENT_ID=$AZURE_CLIENT_ID \
   -e AZURE_TENANT_ID=$AZURE_TENANT_ID \
   -e AZURE_CLIENT_SECRET=$AZURE_CLIENT_SECRET \
-  valqore/engine:1.5.0 finops billing --cloud azure \
+  valqore/engine:1.5.1 finops billing --cloud azure \
     --subscription-id YOUR_SUBSCRIPTION_ID --daily
 ```
 
@@ -250,7 +250,7 @@ docker run --rm \
   -v valqore-data:/home/valqore/.valqore \
   -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
   -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-  valqore/engine:1.5.0 finops billing --cloud aws --fail-if-over 5000
+  valqore/engine:1.5.1 finops billing --cloud aws --fail-if-over 5000
 ```
 
 Exit code 1 if monthly spend exceeds $5,000 — use this in CI/CD to block deploys when costs spike.
@@ -264,7 +264,7 @@ docker run --rm \
   -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
   -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
   -e AWS_DEFAULT_REGION=us-east-1 \
-  valqore/engine:1.5.0 drift-state /workspace/terraform.tfstate --cloud aws --attribution
+  valqore/engine:1.5.1 drift-state /workspace/terraform.tfstate --cloud aws --attribution
 ```
 
 Shows what changed, when, and who changed it (via CloudTrail).
@@ -278,7 +278,7 @@ docker run --rm \
   -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
   -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
   -e AWS_DEFAULT_REGION=us-east-1 \
-  valqore/engine:1.5.0 drift-state /workspace/terraform.tfstate \
+  valqore/engine:1.5.1 drift-state /workspace/terraform.tfstate \
     --watch --interval 30 \
     --slack https://hooks.slack.com/services/YOUR/WEBHOOK/URL
 ```
@@ -291,7 +291,7 @@ Block ungoverned AI/ML workloads from reaching production:
 docker run --rm \
   -v valqore-data:/home/valqore/.valqore \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.0 ai-gate /workspace/
+  valqore/engine:1.5.1 ai-gate /workspace/
 ```
 
 Output:
@@ -312,7 +312,7 @@ Score the governance posture of every AI agent in your manifests, cluster, or cl
 docker run --rm \
   -v valqore-data:/home/valqore/.valqore \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.0 agent-audit /workspace/
+  valqore/engine:1.5.1 agent-audit /workspace/
 ```
 
 Output:
@@ -335,7 +335,7 @@ Block a change in CI before deploy on a $/mo ceiling or a delta-vs-baseline:
 docker run --rm \
   -v valqore-data:/home/valqore/.valqore \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.0 finops cost-gate /workspace/proposed/ \
+  valqore/engine:1.5.1 finops cost-gate /workspace/proposed/ \
     --baseline /workspace/current/ --max-delta 500
 ```
 
@@ -347,7 +347,7 @@ Exit code 1 when the change adds more than $500/mo over the baseline — cost *p
 docker run --rm \
   -v valqore-data:/home/valqore/.valqore \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.0 image-audit /workspace/ --check-updates
+  valqore/engine:1.5.1 image-audit /workspace/ --check-updates
 ```
 
 Output:
@@ -362,7 +362,7 @@ Output:
 docker run --rm \
   -v valqore-data:/home/valqore/.valqore \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.0 evidence hipaa -f /workspace/
+  valqore/engine:1.5.1 evidence hipaa -f /workspace/
 ```
 
 All 16 packs: `hipaa`, `soc2`, `pci_dss`, `gdpr`, `iso27001`, `iso_42001`, `eu_ai_act`, `nist_csf`, `nist_ai_rmf`, `owasp_llm`, `owasp_agentic`, `dora`, `fedramp`, `sr_11_7`, `cra`, `pqc_migration`. Add `-f oscal` to any pack for machine-readable NIST OSCAL evidence.
@@ -391,7 +391,7 @@ docker run --rm \
   -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
   -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
   -e AWS_DEFAULT_REGION=us-east-1 \
-  valqore/engine:1.5.0-ai ai-scan /workspace/ \
+  valqore/engine:1.5.1-ai ai-scan /workspace/ \
     --state /workspace/terraform.tfstate --cloud aws
 ```
 
@@ -427,7 +427,7 @@ Step 3/3: Generating AI analysis...
 docker run --rm -it \
   -v valqore-data:/home/valqore/.valqore \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.0-ai chat /workspace/deploy.yaml
+  valqore/engine:1.5.1-ai chat /workspace/deploy.yaml
 ```
 
 Start an interactive conversation about your scan results:
@@ -457,7 +457,7 @@ The chat uses the embedded fine-tuned AI model. Everything runs locally inside t
 
 ```bash
 docker run --rm -v valqore-data:/home/valqore/.valqore \
-  valqore/engine:1.5.0 license
+  valqore/engine:1.5.1 license
 ```
 
 ---
@@ -510,7 +510,7 @@ Mount your kubeconfig:
     docker run --rm \
       -v ${{ github.workspace }}:/workspace \
       -v valqore-data:/home/valqore/.valqore \
-      valqore/engine:1.5.0 evaluate /workspace/ --score --fail-on block
+      valqore/engine:1.5.1 evaluate /workspace/ --score --fail-on block
 ```
 
 Exit code 1 on BLOCK verdict = PR fails.
@@ -524,7 +524,7 @@ Exit code 1 on BLOCK verdict = PR fails.
       -v valqore-data:/home/valqore/.valqore \
       -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
       -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
-      valqore/engine:1.5.0 finops billing --cloud aws --fail-if-over 5000
+      valqore/engine:1.5.1 finops billing --cloud aws --fail-if-over 5000
 ```
 
 ---
@@ -540,7 +540,7 @@ cd valqore
 docker run --rm \
   -v valqore-data:/home/valqore/.valqore \
   -v $(pwd)/examples:/workspace \
-  valqore/engine:1.5.0 evaluate /workspace/ecommerce/ --score
+  valqore/engine:1.5.1 evaluate /workspace/ecommerce/ --score
 ```
 
 ### Basics — Secure vs Insecure
@@ -561,12 +561,12 @@ docker run --rm \
 
 ```bash
 # secure-deploy → PASS (76/100, zero criticals)
-docker run --rm -v $(pwd):/workspace valqore/engine:1.5.0 \
+docker run --rm -v $(pwd):/workspace valqore/engine:1.5.1 \
   env-evaluate /workspace/examples/basics/secure-deploy.yaml \
   -e prod --policy /workspace/examples/.valqore/policy.yaml
 
 # insecure-deploy → BLOCK (28/100, 3 criticals)
-docker run --rm -v $(pwd):/workspace valqore/engine:1.5.0 \
+docker run --rm -v $(pwd):/workspace valqore/engine:1.5.1 \
   env-evaluate /workspace/examples/basics/insecure-deploy.yaml \
   -e prod --policy /workspace/examples/.valqore/policy.yaml
 ```
@@ -596,11 +596,11 @@ Compare carbon impact — same workload, different configurations:
 # Compare the two
 docker run --rm -v valqore-data:/home/valqore/.valqore \
   -v $(pwd)/examples:/workspace \
-  valqore/engine:1.5.0 evaluate /workspace/greenops/high-carbon-deployment.yaml --score
+  valqore/engine:1.5.1 evaluate /workspace/greenops/high-carbon-deployment.yaml --score
 
 docker run --rm -v valqore-data:/home/valqore/.valqore \
   -v $(pwd)/examples:/workspace \
-  valqore/engine:1.5.0 evaluate /workspace/greenops/low-carbon-deployment.yaml --score
+  valqore/engine:1.5.1 evaluate /workspace/greenops/low-carbon-deployment.yaml --score
 ```
 
 ### AI Scan Scenarios
@@ -616,7 +616,7 @@ Full-stack app with K8s + Terraform — run `ai-scan` to get evaluate + drift + 
 # AI Scan — evaluates everything and explains findings
 docker run --rm -v valqore-data:/home/valqore/.valqore \
   -v $(pwd)/examples:/workspace \
-  valqore/engine:1.5.0-ai ai-scan /workspace/ai-scan/
+  valqore/engine:1.5.1-ai ai-scan /workspace/ai-scan/
 ```
 
 ### Chat Scenarios
@@ -632,7 +632,7 @@ Scan these files, then start a chat to ask questions — great for compliance-he
 # Scan first, then chat about findings
 docker run --rm -it -v valqore-data:/home/valqore/.valqore \
   -v $(pwd)/examples:/workspace \
-  valqore/engine:1.5.0-ai chat /workspace/chat/healthcare-api.yaml
+  valqore/engine:1.5.1-ai chat /workspace/chat/healthcare-api.yaml
 
 # Try asking:
 #   "Is this HIPAA compliant?"

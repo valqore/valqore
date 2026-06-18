@@ -18,7 +18,7 @@ private channels:
 
 Please include, where possible:
 
-- The affected component and version (e.g. `valqore/engine:1.5.0`, the CLI, the
+- The affected component and version (e.g. `valqore/engine:1.5.1`, the CLI, the
   admission webhook, the MCP gate).
 - A description of the issue and its impact.
 - Steps to reproduce, a proof of concept, or a failing test case.
