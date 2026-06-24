@@ -3,7 +3,7 @@
 > **One scan. One score. One verdict.**
 
 [![Website](https://img.shields.io/badge/website-valqore.io-blue)](https://www.valqore.io)
-[![Docker](https://img.shields.io/badge/docker-valqore%2Fengine-2496ED?logo=docker)](https://hub.docker.com/r/valqore/engine)
+[![Image](https://img.shields.io/badge/ghcr.io-valqore%2Fengine-2496ED?logo=docker)](https://github.com/orgs/valqore/packages/container/package/engine)
 [![Rules](https://img.shields.io/badge/rules-1,370-brightgreen)]()
 [![Compliance Packs](https://img.shields.io/badge/compliance%20packs-16-blueviolet)]()
 [![Blog](https://img.shields.io/badge/blog-blog.valqore.io-black)](https://blog.valqore.io)
@@ -18,7 +18,7 @@ Valqore is an infrastructure governance engine that scans Kubernetes manifests, 
 
 | Surface | Install | Best for |
 |---|---|---|
-| **CLI / Docker** | `docker run valqore/engine:1.5.1 evaluate manifest.yaml` | Local checks, CI pipelines |
+| **CLI / Docker** | `docker run ghcr.io/valqore/engine:latest valqore evaluate manifest.yaml --score` | Local checks, CI pipelines |
 | **K8s admission control** | `helm install` from [`valqore-stack`](https://github.com/valqore/valqore-operator/tree/main/charts/valqore-stack) | Cluster-wide enforcement via native `ValidatingAdmissionPolicy` |
 | **VS Code extension** | [`valqore-vscode`](https://github.com/valqore/valqore-vscode) `.vsix` | Real-time CodeLens + hover + quick-fix in YAML / Terraform / Helm |
 | **Freelens K8s IDE** | [`freelens-valqore`](https://github.com/valqore/freelens-valqore) extension | Resource-detail panels + cluster overview + right-click policy checks |
@@ -62,52 +62,32 @@ Flip `action: Warn` → `action: Deny` when you're confident, then watch the API
 ### Requirements
 
 - Docker (any OS — Linux, macOS, Windows)
-- A Valqore license key ([request a trial](mailto:tunc@valqore.io))
+- **No key, no signup.** The deterministic core is free and runs tokenless. Only the AI features (offline AI scan, chat, embedded model) need a license — [request one](mailto:tunc@valqore.io).
 
 ### Step 1: Pull the image
 
 ```bash
-docker pull valqore/engine:1.5.1
+docker pull ghcr.io/valqore/engine:latest
 ```
 
-Two variants available:
+The public image is **compiled** (native code — no readable source), **multi-arch**
+(linux/amd64 + linux/arm64), and **cosign-signed with an SBOM**.
 
-| Image | Size | Description |
+| Image | Distribution | Description |
 |-------|------|-------------|
-| `valqore/engine:1.5.1` | 626 MB | Standard — all 1,370 rules, scoring, drift, billing, compliance |
-| `valqore/engine:1.5.1-ai` | 2.5 GB | Everything above + embedded AI model for offline explanations |
+| `ghcr.io/valqore/engine:latest` | **Free, public, tokenless** | All 1,370 rules, scoring, drift, billing, compliance, MCP, agent-gate |
+| `valqore/engine:1.7.0-ai` | **Licensed** ([request access](mailto:tunc@valqore.io)) | Everything above + embedded offline AI model (AI scan, chat) |
 
-### Step 2: Create a persistent volume
-
-```bash
-docker volume create valqore-data
-```
-
-This stores your license. Use `-v valqore-data:/home/valqore/.valqore` on every run.
-
-### Step 3: Activate your license
+### Step 2: Scan your first file (no key needed)
 
 ```bash
-docker run --rm -v valqore-data:/home/valqore/.valqore \
-  valqore/engine:1.5.1 activate YOUR_LICENSE_KEY
+docker run --rm -v $(pwd):/workspace \
+  ghcr.io/valqore/engine:latest valqore evaluate /workspace/deploy.yaml --score
 ```
 
-Output:
-```
-License activated!
-  Email:   your@email.com
-  Plan:    trial
-  Expires: 2026-05-15 (30 days remaining)
-```
-
-### Step 4: Scan your first file
-
-```bash
-docker run --rm \
-  -v valqore-data:/home/valqore/.valqore \
-  -v $(pwd):/workspace \
-  valqore/engine:1.5.1 evaluate /workspace/deploy.yaml --score
-```
+> The deterministic core needs no license and no persistent volume. (The
+> **AI image** does: create one with `docker volume create valqore-data`, then
+> `docker run --rm -v valqore-data:/app/data valqore/engine:1.7.0-ai valqore activate YOUR_LICENSE_KEY`.)
 
 Output:
 ```
@@ -128,19 +108,21 @@ That's it. You're scanning infrastructure.
 
 Every published image is cryptographically signed and carries an SPDX SBOM, so you can prove exactly what you're running. Install [cosign](https://docs.sigstore.dev/cosign/system_config/installation/), then:
 
-**Standard image** (`valqore/engine:1.5.1`) — keyless-signed in CI via Sigstore (GitHub OIDC + Rekor):
+**Public image** (`ghcr.io/valqore/engine:1.7.0`) — keyless-signed in CI via Sigstore (GitHub OIDC + Rekor):
 
 ```bash
-cosign verify valqore/engine:1.5.1 \
+cosign verify ghcr.io/valqore/engine:1.7.0 \
+  --certificate-identity-regexp 'https://github.com/valqore/valqore-engine/.*' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+cosign verify-attestation ghcr.io/valqore/engine:1.7.0 --type spdxjson \
   --certificate-identity-regexp 'https://github.com/valqore/valqore-engine/.*' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```
 
-**AI image** (`valqore/engine:1.5.1-ai`) — signed with Valqore's release key ([`cosign.pub`](cosign.pub)):
+**AI image** (`valqore/engine:1.7.0-ai`) — signed with Valqore's release key ([`cosign.pub`](cosign.pub)):
 
 ```bash
-cosign verify --key cosign.pub --insecure-ignore-tlog valqore/engine:1.5.1-ai
-cosign verify-attestation --key cosign.pub --insecure-ignore-tlog --type spdxjson valqore/engine:1.5.1-ai
+cosign verify --key cosign.pub --insecure-ignore-tlog valqore/engine:1.7.0-ai
 ```
 
 Both checks confirm the image hasn't been tampered with since publish. The SBOM (SPDX) enumerates every component in the image for vulnerability scanning and audit.
@@ -160,36 +142,36 @@ Both checks confirm the image hasn't been tampered with since publish. The SBOM 
 
 ```bash
 docker run --rm \
-  -v valqore-data:/home/valqore/.valqore \
+  -v valqore-data:/app/data \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.1 evaluate /workspace/kubernetes/ --score
+  ghcr.io/valqore/engine:latest valqore evaluate /workspace/kubernetes/ --score
 ```
 
 ### Scan Terraform files
 
 ```bash
 docker run --rm \
-  -v valqore-data:/home/valqore/.valqore \
+  -v valqore-data:/app/data \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.1 evaluate /workspace/main.tf --score
+  ghcr.io/valqore/engine:latest valqore evaluate /workspace/main.tf --score
 ```
 
 ### Scan an entire directory
 
 ```bash
 docker run --rm \
-  -v valqore-data:/home/valqore/.valqore \
+  -v valqore-data:/app/data \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.1 evaluate /workspace/ --score
+  ghcr.io/valqore/engine:latest valqore evaluate /workspace/ --score
 ```
 
 ### Cost simulation — what if we migrate to Graviton?
 
 ```bash
 docker run --rm \
-  -v valqore-data:/home/valqore/.valqore \
+  -v valqore-data:/app/data \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.1 what-if /workspace/deploy.yaml --graviton
+  ghcr.io/valqore/engine:latest valqore what-if /workspace/deploy.yaml --graviton
 ```
 
 Output:
@@ -203,20 +185,20 @@ Output:
 
 ```bash
 docker run --rm \
-  -v valqore-data:/home/valqore/.valqore \
+  -v valqore-data:/app/data \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.1 what-if /workspace/deploy.yaml --spot-ratio 70
+  ghcr.io/valqore/engine:latest valqore what-if /workspace/deploy.yaml --spot-ratio 70
 ```
 
 ### Check cloud billing (AWS)
 
 ```bash
 docker run --rm \
-  -v valqore-data:/home/valqore/.valqore \
+  -v valqore-data:/app/data \
   -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
   -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
   -e AWS_DEFAULT_REGION=us-east-1 \
-  valqore/engine:1.5.1 finops billing --cloud aws --daily --days 30
+  ghcr.io/valqore/engine:latest valqore finops billing --cloud aws --daily --days 30
 ```
 
 Output:
@@ -235,11 +217,11 @@ AWS Daily Cost Trend (last 30 days)  Total: $3,459.14
 
 ```bash
 docker run --rm \
-  -v valqore-data:/home/valqore/.valqore \
+  -v valqore-data:/app/data \
   -e AZURE_CLIENT_ID=$AZURE_CLIENT_ID \
   -e AZURE_TENANT_ID=$AZURE_TENANT_ID \
   -e AZURE_CLIENT_SECRET=$AZURE_CLIENT_SECRET \
-  valqore/engine:1.5.1 finops billing --cloud azure \
+  ghcr.io/valqore/engine:latest valqore finops billing --cloud azure \
     --subscription-id YOUR_SUBSCRIPTION_ID --daily
 ```
 
@@ -247,10 +229,10 @@ docker run --rm \
 
 ```bash
 docker run --rm \
-  -v valqore-data:/home/valqore/.valqore \
+  -v valqore-data:/app/data \
   -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
   -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-  valqore/engine:1.5.1 finops billing --cloud aws --fail-if-over 5000
+  ghcr.io/valqore/engine:latest valqore finops billing --cloud aws --fail-if-over 5000
 ```
 
 Exit code 1 if monthly spend exceeds $5,000 — use this in CI/CD to block deploys when costs spike.
@@ -259,12 +241,12 @@ Exit code 1 if monthly spend exceeds $5,000 — use this in CI/CD to block deplo
 
 ```bash
 docker run --rm \
-  -v valqore-data:/home/valqore/.valqore \
+  -v valqore-data:/app/data \
   -v $(pwd):/workspace \
   -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
   -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
   -e AWS_DEFAULT_REGION=us-east-1 \
-  valqore/engine:1.5.1 drift-state /workspace/terraform.tfstate --cloud aws --attribution
+  ghcr.io/valqore/engine:latest valqore drift-state /workspace/terraform.tfstate --cloud aws --attribution
 ```
 
 Shows what changed, when, and who changed it (via CloudTrail).
@@ -273,12 +255,12 @@ Shows what changed, when, and who changed it (via CloudTrail).
 
 ```bash
 docker run --rm \
-  -v valqore-data:/home/valqore/.valqore \
+  -v valqore-data:/app/data \
   -v $(pwd):/workspace \
   -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
   -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
   -e AWS_DEFAULT_REGION=us-east-1 \
-  valqore/engine:1.5.1 drift-state /workspace/terraform.tfstate \
+  ghcr.io/valqore/engine:latest valqore drift-state /workspace/terraform.tfstate \
     --watch --interval 30 \
     --slack https://hooks.slack.com/services/YOUR/WEBHOOK/URL
 ```
@@ -289,9 +271,9 @@ Block ungoverned AI/ML workloads from reaching production:
 
 ```bash
 docker run --rm \
-  -v valqore-data:/home/valqore/.valqore \
+  -v valqore-data:/app/data \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.1 ai-gate /workspace/
+  ghcr.io/valqore/engine:latest valqore ai-gate /workspace/
 ```
 
 Output:
@@ -310,9 +292,9 @@ Score the governance posture of every AI agent in your manifests, cluster, or cl
 
 ```bash
 docker run --rm \
-  -v valqore-data:/home/valqore/.valqore \
+  -v valqore-data:/app/data \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.1 agent-audit /workspace/
+  ghcr.io/valqore/engine:latest valqore agent-audit /workspace/
 ```
 
 Output:
@@ -333,9 +315,9 @@ Block a change in CI before deploy on a $/mo ceiling or a delta-vs-baseline:
 
 ```bash
 docker run --rm \
-  -v valqore-data:/home/valqore/.valqore \
+  -v valqore-data:/app/data \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.1 finops cost-gate /workspace/proposed/ \
+  ghcr.io/valqore/engine:latest valqore finops cost-gate /workspace/proposed/ \
     --baseline /workspace/current/ --max-delta 500
 ```
 
@@ -345,9 +327,9 @@ Exit code 1 when the change adds more than $500/mo over the baseline — cost *p
 
 ```bash
 docker run --rm \
-  -v valqore-data:/home/valqore/.valqore \
+  -v valqore-data:/app/data \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.1 image-audit /workspace/ --check-updates
+  ghcr.io/valqore/engine:latest valqore image-audit /workspace/ --check-updates
 ```
 
 Output:
@@ -360,9 +342,9 @@ Output:
 
 ```bash
 docker run --rm \
-  -v valqore-data:/home/valqore/.valqore \
+  -v valqore-data:/app/data \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.1 evidence hipaa -f /workspace/
+  ghcr.io/valqore/engine:latest valqore evidence hipaa -f /workspace/
 ```
 
 All 16 packs: `hipaa`, `soc2`, `pci_dss`, `gdpr`, `iso27001`, `iso_42001`, `eu_ai_act`, `nist_csf`, `nist_ai_rmf`, `owasp_llm`, `owasp_agentic`, `dora`, `fedramp`, `sr_11_7`, `cra`, `pqc_migration`. Add `-f oscal` to any pack for machine-readable NIST OSCAL evidence.
@@ -386,12 +368,12 @@ Valqore tracks CO2e emissions per workload using grid carbon intensity data acro
 
 ```bash
 docker run --rm \
-  -v valqore-data:/home/valqore/.valqore \
+  -v valqore-data:/app/data \
   -v $(pwd):/workspace \
   -e AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
   -e AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
   -e AWS_DEFAULT_REGION=us-east-1 \
-  valqore/engine:1.5.1-ai ai-scan /workspace/ \
+  valqore/engine:1.7.0-ai valqore ai-scan /workspace/ \
     --state /workspace/terraform.tfstate --cloud aws
 ```
 
@@ -425,9 +407,9 @@ Step 3/3: Generating AI analysis...
 
 ```bash
 docker run --rm -it \
-  -v valqore-data:/home/valqore/.valqore \
+  -v valqore-data:/app/data \
   -v $(pwd):/workspace \
-  valqore/engine:1.5.1-ai chat /workspace/deploy.yaml
+  valqore/engine:1.7.0-ai valqore chat /workspace/deploy.yaml
 ```
 
 Start an interactive conversation about your scan results:
@@ -456,8 +438,8 @@ The chat uses the embedded fine-tuned AI model. Everything runs locally inside t
 ### Check license status
 
 ```bash
-docker run --rm -v valqore-data:/home/valqore/.valqore \
-  valqore/engine:1.5.1 license
+docker run --rm -v valqore-data:/app/data \
+  ghcr.io/valqore/engine:latest valqore license
 ```
 
 ---
@@ -495,7 +477,7 @@ Minimum roles: `Reader` + `Cost Management Reader`.
 Mount your kubeconfig:
 
 ```bash
--v ~/.kube/config:/home/valqore/.kube/config:ro
+-v ~/.kube/config:/app/data/.kube/config:ro
 ```
 
 ---
@@ -509,8 +491,8 @@ Mount your kubeconfig:
   run: |
     docker run --rm \
       -v ${{ github.workspace }}:/workspace \
-      -v valqore-data:/home/valqore/.valqore \
-      valqore/engine:1.5.1 evaluate /workspace/ --score --fail-on block
+      -v valqore-data:/app/data \
+      ghcr.io/valqore/engine:latest valqore evaluate /workspace/ --score --fail-on block
 ```
 
 Exit code 1 on BLOCK verdict = PR fails.
@@ -521,10 +503,10 @@ Exit code 1 on BLOCK verdict = PR fails.
 - name: Cost Gate
   run: |
     docker run --rm \
-      -v valqore-data:/home/valqore/.valqore \
+      -v valqore-data:/app/data \
       -e AWS_ACCESS_KEY_ID=${{ secrets.AWS_ACCESS_KEY_ID }} \
       -e AWS_SECRET_ACCESS_KEY=${{ secrets.AWS_SECRET_ACCESS_KEY }} \
-      valqore/engine:1.5.1 finops billing --cloud aws --fail-if-over 5000
+      ghcr.io/valqore/engine:latest valqore finops billing --cloud aws --fail-if-over 5000
 ```
 
 ---
@@ -538,9 +520,9 @@ git clone https://github.com/valqore/valqore.git
 cd valqore
 
 docker run --rm \
-  -v valqore-data:/home/valqore/.valqore \
+  -v valqore-data:/app/data \
   -v $(pwd)/examples:/workspace \
-  valqore/engine:1.5.1 evaluate /workspace/ecommerce/ --score
+  ghcr.io/valqore/engine:latest valqore evaluate /workspace/ecommerce/ --score
 ```
 
 ### Basics — Secure vs Insecure
@@ -561,12 +543,12 @@ docker run --rm \
 
 ```bash
 # secure-deploy → PASS (76/100, zero criticals)
-docker run --rm -v $(pwd):/workspace valqore/engine:1.5.1 \
+docker run --rm -v $(pwd):/workspace ghcr.io/valqore/engine:latest \
   env-evaluate /workspace/examples/basics/secure-deploy.yaml \
   -e prod --policy /workspace/examples/.valqore/policy.yaml
 
 # insecure-deploy → BLOCK (28/100, 3 criticals)
-docker run --rm -v $(pwd):/workspace valqore/engine:1.5.1 \
+docker run --rm -v $(pwd):/workspace ghcr.io/valqore/engine:latest \
   env-evaluate /workspace/examples/basics/insecure-deploy.yaml \
   -e prod --policy /workspace/examples/.valqore/policy.yaml
 ```
@@ -594,13 +576,13 @@ Compare carbon impact — same workload, different configurations:
 
 ```bash
 # Compare the two
-docker run --rm -v valqore-data:/home/valqore/.valqore \
+docker run --rm -v valqore-data:/app/data \
   -v $(pwd)/examples:/workspace \
-  valqore/engine:1.5.1 evaluate /workspace/greenops/high-carbon-deployment.yaml --score
+  ghcr.io/valqore/engine:latest valqore evaluate /workspace/greenops/high-carbon-deployment.yaml --score
 
-docker run --rm -v valqore-data:/home/valqore/.valqore \
+docker run --rm -v valqore-data:/app/data \
   -v $(pwd)/examples:/workspace \
-  valqore/engine:1.5.1 evaluate /workspace/greenops/low-carbon-deployment.yaml --score
+  ghcr.io/valqore/engine:latest valqore evaluate /workspace/greenops/low-carbon-deployment.yaml --score
 ```
 
 ### AI Scan Scenarios
@@ -614,9 +596,9 @@ Full-stack app with K8s + Terraform — run `ai-scan` to get evaluate + drift + 
 
 ```bash
 # AI Scan — evaluates everything and explains findings
-docker run --rm -v valqore-data:/home/valqore/.valqore \
+docker run --rm -v valqore-data:/app/data \
   -v $(pwd)/examples:/workspace \
-  valqore/engine:1.5.1-ai ai-scan /workspace/ai-scan/
+  valqore/engine:1.7.0-ai valqore ai-scan /workspace/ai-scan/
 ```
 
 ### Chat Scenarios
@@ -630,9 +612,9 @@ Scan these files, then start a chat to ask questions — great for compliance-he
 
 ```bash
 # Scan first, then chat about findings
-docker run --rm -it -v valqore-data:/home/valqore/.valqore \
+docker run --rm -it -v valqore-data:/app/data \
   -v $(pwd)/examples:/workspace \
-  valqore/engine:1.5.1-ai chat /workspace/chat/healthcare-api.yaml
+  valqore/engine:1.7.0-ai valqore chat /workspace/chat/healthcare-api.yaml
 
 # Try asking:
 #   "Is this HIPAA compliant?"
@@ -671,7 +653,7 @@ Technical deep-dives and real-world examples:
 ## Links
 
 - Website: [valqore.io](https://www.valqore.io)
-- Docker Hub: [valqore/engine](https://hub.docker.com/r/valqore/engine)
+- Container image: [`ghcr.io/valqore/engine`](https://github.com/orgs/valqore/packages/container/package/engine)
 - Blog: [blog.valqore.io](https://blog.valqore.io)
 - Book a demo: [calendly.com/tuncvalqore](https://calendly.com/tuncvalqore/30min)
 - Contact: tunc@valqore.io
