@@ -1,0 +1,31 @@
+# Supply-chain risks Valqore catches before deploy.
+#
+# Try it:
+#   docker run --rm -v "$PWD:/work" -w /work ghcr.io/valqore/engine:latest \
+#     valqore evaluate /work/examples/supply-chain/unsigned-unpinned.yaml --score
+#
+# Expect: failures for mutable/unpinned image references (`:latest`, no tag,
+# no digest) — the classic way a "known-good" image silently becomes a
+# different, unverified image at deploy time.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web
+  namespace: production
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: app
+          image: nginx:latest        # mutable tag — pin to a digest instead
+        - name: cache
+          image: redis               # no tag at all — resolves to :latest
+        - name: tools
+          image: busybox:1.36        # tagged, but still not pinned by digest

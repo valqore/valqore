@@ -1,0 +1,33 @@
+{
+  "//": "A Terraform plan an AI agent (or SRE bot) proposes. Valqore's Agent Action Gate normalizes it and assesses blast-radius + cost before it can apply.",
+  "//try": "docker run --rm -v \"$PWD:/work\" -w /work ghcr.io/valqore/engine:latest valqore agent-gate run --tf-plan /work/examples/agent-gate/terraform-plan.json --agent sre-bot --max-blast-radius medium",
+  "//expect": "blast_radius=high (a delete plus a 0.0.0.0/0 security group) exceeds the 'medium' cap -> BLOCK (exit code 2). Add --request-approval to mint a signed approval request recorded in the agent-gate journal.",
+  "format_version": "1.2",
+  "terraform_version": "1.9.0",
+  "resource_changes": [
+    {
+      "address": "aws_db_instance.prod",
+      "type": "aws_db_instance",
+      "name": "prod",
+      "change": {
+        "actions": ["delete"],
+        "before": { "identifier": "prod-postgres", "deletion_protection": false },
+        "after": null
+      }
+    },
+    {
+      "address": "aws_security_group.web",
+      "type": "aws_security_group",
+      "name": "web",
+      "change": {
+        "actions": ["create"],
+        "after": {
+          "name": "web-sg",
+          "ingress": [
+            { "from_port": 0, "to_port": 65535, "protocol": "-1", "cidr_blocks": ["0.0.0.0/0"] }
+          ]
+        }
+      }
+    }
+  ]
+}

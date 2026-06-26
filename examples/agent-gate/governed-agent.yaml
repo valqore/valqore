@@ -1,0 +1,74 @@
+# A properly GOVERNED autonomous AI agent — the same workload, done right.
+#
+# Try it:
+#   docker run --rm -v "$PWD:/work" -w /work ghcr.io/valqore/engine:latest \
+#     valqore agent-audit /work/examples/agent-gate/governed-agent.yaml
+#
+# Compare the posture with ungoverned-agent.yaml. This declares the full set of
+# governance controls Valqore scores across all five dimensions — identity,
+# guardrails, boundary, oversight, and model supply chain — so the fleet comes
+# back GOVERNED. It also runs non-root, pinned by digest, with resource limits.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ops-agent
+  namespace: agents
+  labels:
+    valqore.io/agent: "true"
+  annotations:
+    # --- Identity & Access ---
+    valqore.io/agent-sa: agent-ops                       # dedicated identity
+    valqore.io/agent-card: "https://ops-agent.internal/.well-known/agent-card.json"
+    valqore.io/agent-auth-scheme: oidc                   # strong auth (oauth2/oidc/mtls)
+    valqore.io/agent-delegation: signed                  # verifiable delegation (AIP)
+    valqore.io/agent-mtls: spiffe                        # machine identity
+    # --- Guardrails & Limits ---
+    valqore.io/agent-max-steps: "25"                     # step / loop cap
+    valqore.io/agent-max-tool-calls: "50"               # tool-call cap
+    valqore.io/agent-token-budget: "100000"             # per-run token budget
+    valqore.io/agent-timeout: "300s"                    # wall-clock timeout
+    valqore.io/agent-tenant-budget: "50/day"            # per-tenant budget
+    valqore.io/agent-context-strategy: sliding-window   # context-window management
+    valqore.io/agent-rate-limit: "60/min"               # rate limited
+    valqore.io/agent-blast-radius: "resources<=10"      # blast-radius cap
+    valqore.io/agent-egress-policy: default-deny        # locked-down egress
+    # --- Oversight & Audit ---
+    prometheus.io/scrape: "true"                        # per-session telemetry
+    valqore.io/agent-tracks-capo: "true"                # cost-per-outcome tracking
+    valqore.io/agent-escalation-threshold: "15%"        # budget-breach escalation
+    valqore.io/agent-uncertainty-framing: "true"        # outputs framed as hypotheses
+    valqore.io/agent-audit-sink: "s3://valqore-agent-audit/ops"
+    valqore.io/kill-switch: "enabled"
+    valqore.io/human-oversight: review-before-action
+    valqore.io/agent-author-signal: co-authored-by      # human-vs-agent signal
+    valqore.io/ai-registered: "true"
+    valqore.io/ai-risk-level: "high"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ops-agent
+  template:
+    metadata:
+      labels:
+        app: ops-agent
+        valqore.io/agent: "true"
+    spec:
+      serviceAccountName: agent-ops
+      automountServiceAccountToken: false
+      containers:
+        - name: agent
+          # pinned by digest (not :latest)
+          image: ghcr.io/example/ops-agent@sha256:0000000000000000000000000000000000000000000000000000000000000000
+          securityContext:
+            runAsNonRoot: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: "500m"
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi

@@ -1,0 +1,36 @@
+# Ungoverned autonomous AI agent — exactly what Valqore's Agent Action Gate is for.
+#
+# Try it:
+#   docker run --rm -v "$PWD:/work" -w /work ghcr.io/valqore/engine:latest \
+#     valqore agent-audit /work/examples/agent-gate/ungoverned-agent.yaml
+#
+# Expect: fleet UNGOVERNED — the agent runs as a shared/default service account,
+# privileged + root, with no kill-switch, no rate limit, no blast-radius cap,
+# no audit sink, and no default-deny egress. None of the AIG-144..150 controls
+# are present.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: research-agent
+  namespace: production
+  labels:
+    valqore.io/agent: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: research-agent
+  template:
+    metadata:
+      labels:
+        app: research-agent
+        valqore.io/agent: "true"
+    spec:
+      serviceAccountName: default          # shared SA — no identity isolation
+      containers:
+        - name: agent
+          image: langchain/langchain:latest # unpinned image
+          securityContext:
+            privileged: true                 # full host access
+            runAsUser: 0                      # root
+          # no resource limits -> a runaway agent loop can burn unbounded $$$
