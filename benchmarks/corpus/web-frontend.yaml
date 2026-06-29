@@ -1,0 +1,36 @@
+# A web frontend with bread-and-butter K8s security misconfigs every scanner
+# should catch (so the comparison is fair): no securityContext, :latest, no
+# probes, no resource requests, no NetworkPolicy.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: storefront
+  namespace: ecommerce
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: storefront
+  template:
+    metadata:
+      labels:
+        app: storefront
+    spec:
+      containers:
+        - name: web
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: storefront
+  namespace: ecommerce
+spec:
+  type: LoadBalancer
+  selector:
+    app: storefront
+  ports:
+    - port: 80
+      targetPort: 80

@@ -1,0 +1,43 @@
+# An LLM inference service: security holes + cost waste + ZERO AI governance.
+# Security scanners catch the securityContext issues; only Valqore also flags the
+# missing AI governance (no auth, no risk class, no rate limit) and the cost/carbon.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inference-server
+  namespace: ml-platform
+  labels:
+    app: inference-server
+    valqore.io/ai-workload-type: agent
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: inference-server
+  template:
+    metadata:
+      labels:
+        app: inference-server
+    spec:
+      hostNetwork: true
+      automountServiceAccountToken: true
+      containers:
+        - name: serving
+          image: vllm/vllm-openai:latest
+          env:
+            - name: OPENAI_API_KEY
+              value: "sk-prod-3f9a1c2b7e8d4f60a1b2c3d4e5f60718"   # hardcoded secret
+            - name: MODEL
+              value: "meta-llama/Llama-3-70b"
+          ports:
+            - containerPort: 8000
+          securityContext:
+            privileged: true
+            runAsUser: 0
+            allowPrivilegeEscalation: true
+          resources:
+            requests:
+              cpu: "16"
+              memory: 64Gi
+              nvidia.com/gpu: 4
+            # no limits -> can consume the whole node

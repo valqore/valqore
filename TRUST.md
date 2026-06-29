@@ -54,8 +54,9 @@ findings — which is what makes the output suitable as compliance evidence.
   `cosign verify` / `cosign verify-attestation` — see
   ["Verify image authenticity"](README.md#verify-image-authenticity-supply-chain).
 - **Reproducible benchmark.** Our competitive coverage claims are backed by a
-  committed, reproducible benchmark (corpus + harness + methodology) so anyone
-  can re-run and contest the numbers. See the engine's `benchmarks/`.
+  committed, reproducible benchmark — corpus + harness + methodology in
+  [`benchmarks/`](benchmarks/) — so anyone can re-run and contest the numbers
+  using only the public image (`docker pull ghcr.io/valqore/engine:latest`).
 
 ## Reporting security issues
 

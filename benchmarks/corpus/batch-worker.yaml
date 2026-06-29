@@ -1,0 +1,37 @@
+# An over-provisioned batch worker: classic cost waste (huge requests, no HPA,
+# no cost-allocation labels) plus reliability gaps. Security tools largely pass
+# this; Valqore flags the cost/right-sizing and the missing FinOps tags.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: event-processor
+  namespace: data-pipeline
+spec:
+  replicas: 10
+  selector:
+    matchLabels:
+      app: event-processor
+  template:
+    metadata:
+      labels:
+        app: event-processor
+    spec:
+      containers:
+        - name: worker
+          image: company/event-processor:1.4.2
+          resources:
+            requests:
+              cpu: "8"
+              memory: 32Gi
+            limits:
+              cpu: "8"
+              memory: 32Gi
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+            seccompProfile:
+              type: RuntimeDefault
