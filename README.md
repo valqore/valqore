@@ -148,6 +148,7 @@ Both checks confirm the image hasn't been tampered with since publish. The SBOM 
 
 - **[TRUST.md](TRUST.md)** — how the deterministic engine decides, what Valqore does (and doesn't) do with your data, self-hosted/no-egress posture, supply-chain integrity, and an honest in-place-vs-planned status.
 - **[SECURITY.md](SECURITY.md)** — coordinated vulnerability disclosure policy, private reporting channels, response targets, and safe harbor.
+- **[SECURITY-FAQ.md](SECURITY-FAQ.md)** — vendor security & due-diligence FAQ: SIG / CAIQ-style answers on data handling, subprocessors, encryption, supply chain, AI, and compliance posture, for security/procurement reviews.
 
 ---
 
