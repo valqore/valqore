@@ -1,0 +1,70 @@
+# The SAME kagent agent, brought to a GOVERNED posture. Every control is either
+# declared on the Agent CRD (annotations) or backed by a real sibling resource
+# that Valqore verifies cross-resource (P-7): a dedicated token-isolated
+# ServiceAccount and a default-deny egress NetworkPolicy. agent-audit returns
+# GOVERNED only when the evidence -- not just the annotation -- is present.
+---
+apiVersion: kagent.dev/v1alpha1
+kind: Agent
+metadata:
+  name: k8s-troubleshooter
+  namespace: kagent
+  labels:
+    app: k8s-troubleshooter
+  annotations:
+    valqore.io/agent-sa: agent-troubleshooter
+    valqore.io/agent-card: https://kagent.local/.well-known/agent-card.json
+    valqore.io/agent-auth-scheme: oidc
+    valqore.io/agent-delegation: signed
+    valqore.io/agent-delegates-to: ""           # no delegation -> no cycle
+    valqore.io/agent-mtls: spiffe
+    valqore.io/agent-max-steps: "25"
+    valqore.io/agent-max-tool-calls: "50"
+    valqore.io/agent-token-budget: "100000"
+    valqore.io/agent-timeout: 300s
+    valqore.io/agent-tenant-budget: 50/day
+    valqore.io/agent-context-strategy: sliding-window
+    valqore.io/agent-rate-limit: 60/min
+    valqore.io/agent-blast-radius: resources<=10
+    valqore.io/agent-egress-policy: default-deny
+    prometheus.io/scrape: "true"
+    valqore.io/agent-tracks-capo: "true"
+    valqore.io/agent-escalation-threshold: 15%
+    valqore.io/agent-uncertainty-framing: "true"
+    valqore.io/agent-audit-sink: s3://valqore-audit/kagent
+    valqore.io/kill-switch: enabled
+    valqore.io/human-oversight: review-before-action
+    valqore.io/agent-author-signal: co-authored-by
+    valqore.io/ai-registered: "true"
+spec:
+  systemMessage: "You are a Kubernetes troubleshooting expert."
+  modelConfig: pinned-model-config@sha256:abc123
+  serviceAccountName: agent-troubleshooter
+  automountServiceAccountToken: false
+  tools:
+    - type: McpServer
+      mcpServer:
+        toolServer: kagent-tool-server
+        toolNames: [k8s_get_pods, k8s_describe_resource]
+---
+# Dedicated, token-isolated identity (verifies AIG-144 against the real SA).
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: agent-troubleshooter
+  namespace: kagent
+automountServiceAccountToken: false
+---
+# Real default-deny egress NetworkPolicy that selects the agent (verifies AIG-150
+# cross-resource -- no self-attestation trusted).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: agent-default-deny-egress
+  namespace: kagent
+spec:
+  podSelector:
+    matchLabels:
+      app: k8s-troubleshooter
+  policyTypes: [Egress]
+  # no egress: rules -> deny all egress

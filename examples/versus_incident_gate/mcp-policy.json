@@ -1,0 +1,9 @@
+{
+  "max_blast_radius": "medium",
+  "deny": ["*delete*", "*drop*"],
+  "require_approval": ["*rollback*", "*rollout*undo*", "*terminate*", "*restart*", "*scale*"],
+  "agent_scopes": {
+    "incident-responder": ["find_runbook", "pg_query", "k8s_get*", "k8s_describe*", "k8s_logs*"],
+    "remediation-agent": ["find_runbook", "pg_*", "argo_*", "kubectl_*", "k8s_*"]
+  }
+}

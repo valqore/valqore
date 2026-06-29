@@ -1,0 +1,8 @@
+{
+  "max_blast_radius": "medium",
+  "deny": ["*delete*", "*drop*", "*destroy*", "*uninstall*"],
+  "agent_scopes": {
+    "k8s-troubleshooter": ["k8s_get*", "k8s_list*", "k8s_describe*"],
+    "remediation-agent": ["k8s_apply", "k8s_patch*", "k8s_scale*"]
+  }
+}

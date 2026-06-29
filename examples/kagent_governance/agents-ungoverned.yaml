@@ -1,0 +1,57 @@
+# An ungoverned kagent fleet -- exactly what `kubectl apply` of a kagent quickstart
+# leaves behind. Valqore discovers and audits every one of these with NO labels,
+# NO annotations, and NO opt-in: native Agent-CRD detection (P-1), delegation-graph
+# analysis (P-4), and BYO-runtime fingerprinting (P-6).
+---
+apiVersion: kagent.dev/v1alpha1
+kind: Agent
+metadata:
+  name: k8s-troubleshooter
+  namespace: kagent
+spec:
+  systemMessage: "You are a Kubernetes troubleshooting expert. Diagnose and fix cluster issues."
+  modelConfig: default-model-config
+  # This agent can delegate to the remediation agent -> A2A edge (P-4).
+  delegatesTo:
+    - remediation-agent
+  tools:
+    - type: McpServer
+      mcpServer:
+        toolServer: kagent-tool-server
+        toolNames: [k8s_get_pods, k8s_describe_resource, k8s_delete_resource, helm_uninstall]
+---
+apiVersion: kagent.dev/v1alpha1
+kind: Agent
+metadata:
+  name: remediation-agent
+  namespace: kagent
+spec:
+  systemMessage: "You apply fixes to the cluster."
+  modelConfig: default-model-config
+  # ... and it delegates back to the troubleshooter -> delegation CYCLE (P-4).
+  delegatesTo:
+    - k8s-troubleshooter
+  tools:
+    - type: McpServer
+      mcpServer:
+        toolServer: kagent-tool-server
+        toolNames: [k8s_apply, argo_rollback]
+---
+# A bring-your-own LangGraph agent with NO governance label at all.
+# Valqore still fingerprints it as an agent runtime and flags it as a SHADOW
+# agent -- the untracked agent no GRC tool sees (P-6).
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: byo-research-agent
+  namespace: kagent
+spec:
+  replicas: 1
+  template:
+    spec:
+      containers:
+        - name: agent
+          image: acme/langgraph-runtime:1.4
+          env:
+            - name: LANGCHAIN_API_KEY
+              value: "redacted"

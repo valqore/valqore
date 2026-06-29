@@ -453,6 +453,13 @@ valqore agent-gate run --tf-plan examples/agent-gate/terraform-plan.json \
   --agent sre-bot --max-blast-radius medium
 ```
 
+#### Govern a whole agentic-framework fleet (kagent / BYO)
+
+Two runnable, end-to-end proofs that drive the real CLI:
+
+- **[kagent_governance/](examples/kagent_governance/)** — take a [kagent](https://kagent.dev) fleet from UNGOVERNED to GOVERNED in five steps: native Agent-CRD discovery, A2A delegation-cycle + shadow-agent detection, telemetry-grounded runtime guardrails, per-agent MCP gating, and VAP admission. `python examples/kagent_governance/demo.py`
+- **[versus_incident_gate/](examples/versus_incident_gate/)** — gate a runbook-reading incident agent: the runbook says "roll back prod," the gate holds it for a signed human. `python examples/versus_incident_gate/demo.py`
+
 ### Supply chain — unpinned & mutable images
 
 ```bash

@@ -1,0 +1,10 @@
+# Observed runtime telemetry for the kagent fleet (OTel gen_ai / agent counters),
+# the kind a Prometheus scrape of kagent-tool-server emits. Valqore checks what
+# the agents ACTUALLY did against their declared budgets (P-5). The troubleshooter
+# has no declared step cap and ran 1,500 steps last window -> HIGH unbounded.
+agent_steps_total{agent="k8s-troubleshooter"} 1500
+agent_tool_calls_total{agent="k8s-troubleshooter"} 240
+llm_tokens_total{agent="k8s-troubleshooter"} 1850000
+agent_errors_total{agent="k8s-troubleshooter"} 36
+agent_steps_total{agent="remediation-agent"} 60
+agent_tool_calls_total{agent="remediation-agent"} 12
