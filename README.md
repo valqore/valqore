@@ -59,18 +59,16 @@ valqore agent-audit ./k8s/                 # who governs your AI agents?
 | Surface | Install | Best for |
 |---|---|---|
 | **CLI / Docker** | `docker run ghcr.io/valqore/engine:latest valqore evaluate manifest.yaml --score` | Local checks, CI pipelines |
-| **K8s admission control** | `helm install` from [`valqore-stack`](https://github.com/valqore/valqore-operator/tree/main/charts/valqore-stack) | Cluster-wide enforcement via native `ValidatingAdmissionPolicy` |
-| **VS Code extension** | [`valqore-vscode`](https://github.com/valqore/valqore-vscode) `.vsix` | Real-time CodeLens + hover + quick-fix in YAML / Terraform / Helm |
-| **Freelens K8s IDE** | [`freelens-valqore`](https://github.com/valqore/freelens-valqore) extension | Resource-detail panels + cluster overview + right-click policy checks |
+| **K8s admission control** | [`helm install` the `valqore-stack` chart](#30-second-cluster-install-kubernetes-native) | Cluster-wide enforcement via native `ValidatingAdmissionPolicy` |
+| **VS Code extension** | [`valqore-vscode`](https://docs.valqore.io) `.vsix` | Real-time CodeLens + hover + quick-fix in YAML / Terraform / Helm |
+| **Freelens K8s IDE** | [`freelens-valqore`](https://docs.valqore.io) extension | Resource-detail panels + cluster overview + right-click policy checks |
 | **MCP for Claude / Cursor** | `valqore mcp` | 134 governance tools your AI assistant can call |
 
 ## 30-second cluster install (Kubernetes-native)
 
 ```bash
-# 1. Install the Valqore CRDs
-kubectl apply -f https://raw.githubusercontent.com/valqore/valqore-engine/master/valqore/k8s/crds.yaml
-
-# 2. Install the operator stack (Go controller-runtime, ~30 MB image)
+# Install the operator stack from the public OCI chart (Go controller-runtime,
+# ~30 MB image). The CRDs ship with the chart and install automatically.
 helm install valqore oci://ghcr.io/valqore/charts/valqore-stack \
   --namespace valqore-system --create-namespace \
   --set 'policies[0].name=enforce-owasp-agentic' \

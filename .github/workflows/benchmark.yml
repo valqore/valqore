@@ -1,0 +1,62 @@
+name: Benchmark
+
+# Continuously proves the public benchmark is reproducible: pulls the public
+# Valqore image, installs Checkov, runs the harness, and fails if either tool
+# produces no findings (i.e. the reproduce path broke). Does NOT assert exact
+# counts — those vary with engine/tool versions, which is the point.
+
+on:
+  push:
+    paths:
+      - "benchmarks/**"
+      - ".github/workflows/benchmark.yml"
+  workflow_dispatch:
+  schedule:
+    - cron: "0 7 * * 1" # weekly, Monday 07:00 UTC
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Pull the public Valqore image
+        run: docker pull ghcr.io/valqore/engine:latest
+
+      - name: Install Checkov
+        # The harness shells out to `checkov` and `docker`; it never imports
+        # checkov, so installing it into this job's Python is safe here.
+        run: pip install --quiet checkov
+
+      - name: Run the benchmark
+        run: python benchmarks/run_benchmark.py
+
+      - name: Show results
+        run: cat benchmarks/RESULTS.md
+
+      - name: Sanity-check the reproduce path
+        run: |
+          python - <<'PY'
+          import json, sys
+          d = json.load(open("benchmarks/results.json"))
+          vq, ck = d.get("valqore", {}), d.get("checkov", {})
+          if not vq.get("available") or not vq.get("findings"):
+              sys.exit("Valqore produced no findings — the image/run path is broken.")
+          if not ck.get("available") or not ck.get("failed"):
+              sys.exit("Checkov produced no findings — the competitor path is broken.")
+          print(f"OK: Valqore {vq['findings']} findings, Checkov {ck['failed']} findings.")
+          PY
+
+      - name: Upload results
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: benchmark-results
+          path: |
+            benchmarks/RESULTS.md
+            benchmarks/results.json
+          if-no-files-found: ignore
