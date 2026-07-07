@@ -17,7 +17,7 @@ Step 5 (AI chat) uses the **licensed AI image** — [request access](mailto:tunc
 ```bash
 docker volume create valqore-data
 docker run --rm -v valqore-data:/home/valqore/.valqore \
-  valqore/engine:1.7.0-ai valqore activate YOUR_LICENSE_KEY
+  ghcr.io/valqore/engine-ai:1.9.0 valqore activate YOUR_LICENSE_KEY
 ```
 
 ## Try It
@@ -64,7 +64,7 @@ docker run --rm \
 docker run --rm -it \
   -v valqore-data:/home/valqore/.valqore \
   -v $(pwd):/workspace \
-  valqore/engine:1.7.0-ai valqore chat --dir /workspace
+  ghcr.io/valqore/engine-ai:1.9.0 valqore chat --dir /workspace
 
 # Try asking:
 #   "Are we EU AI Act compliant?"
