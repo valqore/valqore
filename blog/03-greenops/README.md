@@ -4,14 +4,14 @@ Example files and commands from the blog post. Try them yourself.
 
 ## Prerequisites
 
-```bash
-docker pull valqore/engine:1.0.0
-docker volume create valqore-data
+Everything below runs on the **free, tokenless public image** — no key, no signup:
 
-# Activate your license
-docker run --rm -v valqore-data:/home/valqore/.valqore \
-  valqore/engine:1.0.0 activate YOUR_LICENSE_KEY
+```bash
+docker pull ghcr.io/valqore/engine:1.9.0
 ```
+
+> Expected outputs below are from the original post (engine v1.0.0); exact scores and
+> dollar figures may differ slightly on newer engines as rules are added.
 
 ## Try It
 
@@ -19,9 +19,8 @@ docker run --rm -v valqore-data:/home/valqore/.valqore \
 
 ```bash
 docker run --rm \
-  -v valqore-data:/home/valqore/.valqore \
   -v $(pwd):/workspace \
-  valqore/engine:1.0.0 evaluate /workspace/high-carbon-deployment.yaml --score
+  ghcr.io/valqore/engine:1.9.0 valqore evaluate /workspace/high-carbon-deployment.yaml --score
 ```
 
 Expected output:
@@ -36,9 +35,8 @@ Carbon: 109.430 kg CO₂e/mo (aws:us-east-1)
 
 ```bash
 docker run --rm \
-  -v valqore-data:/home/valqore/.valqore \
   -v $(pwd):/workspace \
-  valqore/engine:1.0.0 evaluate /workspace/low-carbon-deployment.yaml --score
+  ghcr.io/valqore/engine:1.9.0 valqore evaluate /workspace/low-carbon-deployment.yaml --score
 ```
 
 Expected output:
@@ -55,9 +53,8 @@ Carbon: 18.238 kg CO₂e/mo (aws:us-east-1)
 
 ```bash
 docker run --rm \
-  -v valqore-data:/home/valqore/.valqore \
   -v $(pwd):/workspace \
-  valqore/engine:1.0.0 what-if /workspace/high-carbon-deployment.yaml --graviton
+  ghcr.io/valqore/engine:1.9.0 valqore what-if /workspace/high-carbon-deployment.yaml --graviton
 ```
 
 Expected output:
@@ -70,9 +67,8 @@ Carbon:  172.12 kg  -> 52.50 kg   (-69.5%)
 
 ```bash
 docker run --rm \
-  -v valqore-data:/home/valqore/.valqore \
   -v $(pwd):/workspace \
-  valqore/engine:1.0.0 what-if /workspace/high-carbon-deployment.yaml --spot-ratio 70
+  ghcr.io/valqore/engine:1.9.0 valqore what-if /workspace/high-carbon-deployment.yaml --spot-ratio 70
 ```
 
 Spot saves money but carbon stays the same — 0.0% reduction. Spot is a pricing mechanism, not a sustainability mechanism.
