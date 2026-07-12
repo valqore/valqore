@@ -5,7 +5,7 @@
 [![Website](https://img.shields.io/badge/website-valqore.io-blue)](https://www.valqore.io)
 [![Image](https://img.shields.io/badge/ghcr.io-valqore%2Fengine-2496ED?logo=docker)](https://github.com/orgs/valqore/packages/container/package/engine)
 [![Rules](https://img.shields.io/badge/rules-1,376-brightgreen)]()
-[![Compliance Packs](https://img.shields.io/badge/compliance%20packs-16-blueviolet)]()
+[![Compliance Packs](https://img.shields.io/badge/compliance%20packs-18-blueviolet)]()
 [![Blog](https://img.shields.io/badge/blog-blog.valqore.io-black)](https://blog.valqore.io)
 
 ---
@@ -62,7 +62,7 @@ valqore agent-audit ./k8s/                 # who governs your AI agents?
 | **K8s admission control** | [`helm install` the `valqore-stack` chart](#30-second-cluster-install-kubernetes-native) | Cluster-wide enforcement via native `ValidatingAdmissionPolicy` |
 | **VS Code extension** | [`valqore-vscode`](https://docs.valqore.io) `.vsix` | Real-time CodeLens + hover + quick-fix in YAML / Terraform / Helm |
 | **Freelens K8s IDE** | [`freelens-valqore`](https://docs.valqore.io) extension | Resource-detail panels + cluster overview + right-click policy checks |
-| **MCP for Claude / Cursor** | `valqore mcp` | 134 governance tools your AI assistant can call |
+| **MCP for Claude / Cursor** | `valqore mcp` | 135 governance tools your AI assistant can call |
 
 ## 30-second cluster install (Kubernetes-native)
 
@@ -121,13 +121,13 @@ docker run --rm -v valqore-data:/app/data ghcr.io/valqore/engine-ai:1.9.0 valqor
 
 Every published image is cryptographically signed and carries an SPDX SBOM, so you can prove exactly what you're running. Install [cosign](https://docs.sigstore.dev/cosign/system_config/installation/), then:
 
-**Public image** (`ghcr.io/valqore/engine:1.9.0`) — keyless-signed in CI via Sigstore (GitHub OIDC + Rekor):
+**Public image** (`ghcr.io/valqore/engine:1.10.0`) — keyless-signed in CI via Sigstore (GitHub OIDC + Rekor):
 
 ```bash
-cosign verify ghcr.io/valqore/engine:1.9.0 \
+cosign verify ghcr.io/valqore/engine:1.10.0 \
   --certificate-identity-regexp 'https://github.com/valqore/valqore-engine/.*' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
-cosign verify-attestation ghcr.io/valqore/engine:1.9.0 --type spdxjson \
+cosign verify-attestation ghcr.io/valqore/engine:1.10.0 --type spdxjson \
   --certificate-identity-regexp 'https://github.com/valqore/valqore-engine/.*' \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com
 ```
