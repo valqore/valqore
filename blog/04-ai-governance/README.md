@@ -9,7 +9,7 @@ Try them yourself.
 Steps 1–4 run on the **free, tokenless public image** — no key, no signup:
 
 ```bash
-docker pull ghcr.io/valqore/engine:1.12.0
+docker pull ghcr.io/valqore/engine:1.12.1
 ```
 
 Step 5 (AI chat) uses the **licensed AI image** — [request access](mailto:tunc@valqore.io):
@@ -27,7 +27,7 @@ docker run --rm -v valqore-data:/home/valqore/.valqore \
 ```bash
 docker run --rm \
   -v $(pwd):/workspace \
-  ghcr.io/valqore/engine:1.12.0 valqore ai-gate /workspace/azure-llm-inference-ungoverned.yaml
+  ghcr.io/valqore/engine:1.12.1 valqore ai-gate /workspace/azure-llm-inference-ungoverned.yaml
 ```
 
 Expected: BLOCKED, 5 of 5 gates failing.
@@ -37,7 +37,7 @@ Expected: BLOCKED, 5 of 5 gates failing.
 ```bash
 docker run --rm \
   -v $(pwd):/workspace \
-  ghcr.io/valqore/engine:1.12.0 valqore ai-gate /workspace/azure-llm-inference-governed.yaml
+  ghcr.io/valqore/engine:1.12.1 valqore ai-gate /workspace/azure-llm-inference-governed.yaml
 ```
 
 Expected: PASSED, all 5 gates cleared, Score 87/100.
@@ -47,7 +47,7 @@ Expected: PASSED, all 5 gates cleared, Score 87/100.
 ```bash
 docker run --rm \
   -v $(pwd):/workspace \
-  ghcr.io/valqore/engine:1.12.0 valqore evaluate /workspace/azure-llm-inference-ungoverned.yaml --score
+  ghcr.io/valqore/engine:1.12.1 valqore evaluate /workspace/azure-llm-inference-ungoverned.yaml --score
 ```
 
 ### 4. Generate EU AI Act compliance evidence
@@ -55,7 +55,7 @@ docker run --rm \
 ```bash
 docker run --rm \
   -v $(pwd):/workspace \
-  ghcr.io/valqore/engine:1.12.0 valqore evidence eu_ai_act -f /workspace/
+  ghcr.io/valqore/engine:1.12.1 valqore evidence eu_ai_act -f /workspace/
 ```
 
 ### 5. Chat: ask questions in plain English (licensed AI image)
