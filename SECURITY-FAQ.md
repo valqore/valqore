@@ -19,7 +19,7 @@ we'll answer in writing.
 
 | Question | Answer |
 |---|---|
-| What is Valqore? | A deterministic infrastructure-governance engine. It evaluates Kubernetes manifests, Terraform, and live cloud/cluster state against 1,370+ versioned rules (security, cost, carbon, AI governance, compliance) and returns a score, a verdict (PASS / PASS_WITH_MONITORING / BLOCK), and machine-readable evidence. |
+| What is Valqore? | A deterministic infrastructure-governance engine. It evaluates Kubernetes manifests, Terraform, and live cloud/cluster state against 1,379+ versioned rules (security, cost, carbon, AI governance, compliance) and returns a score, a verdict (PASS / PASS_WITH_MONITORING / BLOCK), and machine-readable evidence. |
 | Delivery model | **Self-hosted only.** Distributed as a signed OCI image (`ghcr.io/valqore/engine:latest`). There is no hosted/SaaS product that ingests customer data. |
 | Where does it run? | In your environment: as a CLI, a CI/CD step, a Kubernetes operator/admission webhook, or an MCP gate. |
 | Open source? | The engine is distributed as a **compiled image** (no readable source). The public showcase, examples, trust docs, and benchmark are public at `github.com/valqore/valqore`. |
