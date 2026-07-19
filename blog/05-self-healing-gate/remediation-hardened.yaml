@@ -1,0 +1,37 @@
+# K8sGPT's SENSIBLE fix: "payments-api is missing resource limits, probes, and a
+# hardened securityContext." This remediation genuinely improves posture — it
+# passes Valqore's auto-remediation gate (no CRITICAL findings, low blast radius)
+# and would auto-apply.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments-api
+  namespace: prod
+spec:
+  replicas: 3
+  selector:
+    matchLabels: {app: payments-api}
+  template:
+    metadata:
+      labels: {app: payments-api}
+    spec:
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        seccompProfile: {type: RuntimeDefault}
+      containers:
+        - name: app
+          image: registry.example.com/payments-api@sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+          resources:
+            requests: {cpu: 100m, memory: 128Mi}
+            limits: {cpu: 500m, memory: 256Mi}
+          livenessProbe:
+            httpGet: {path: /healthz, port: 8080}
+          readinessProbe:
+            httpGet: {path: /ready, port: 8080}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            runAsNonRoot: true
+            capabilities: {drop: [ALL]}

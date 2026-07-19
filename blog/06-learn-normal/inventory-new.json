@@ -1,0 +1,5 @@
+[
+  {"kind": "Deployment", "resource_id": "prod/web-c", "spec": {"replicas": 4, "template": {"spec": {"containers": [{"name": "app", "image": "z", "ports": [{"containerPort": 8080}]}]}}}},
+  {"kind": "IAM.Role", "resource_id": "svc-writer", "policy": {"Action": "s3:PutObject", "Resource": "arn:aws:s3:::data"}},
+  {"kind": "Pod", "resource_id": "prod/rogue-agent", "spec": {"hostNetwork": true, "hostPID": true, "containers": [{"name": "x", "securityContext": {"privileged": true}, "volumeMounts": [{"name": "root", "mountPath": "/host"}]}], "volumes": [{"name": "root", "hostPath": {"path": "/"}}]}}
+]

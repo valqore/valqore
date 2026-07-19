@@ -1,0 +1,23 @@
+# K8sGPT's CONVENIENT-BUT-DANGEROUS fix: "to inspect the node, run a privileged
+# debug pod with host access." It makes the symptom go away and is exactly the
+# kind of thing an auto-remediator will happily apply — a privileged, hostNetwork,
+# hostPID pod mounting the node root filesystem. Valqore BLOCKS it (SP-007,
+# CRITICAL) before it reaches the cluster.
+apiVersion: v1
+kind: Pod
+metadata:
+  name: k8sgpt-debug
+  namespace: prod
+spec:
+  hostNetwork: true
+  hostPID: true
+  containers:
+    - name: debug
+      image: busybox
+      securityContext:
+        privileged: true
+      volumeMounts:
+        - {name: host, mountPath: /host}
+  volumes:
+    - name: host
+      hostPath: {path: /}

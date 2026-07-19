@@ -1,0 +1,5 @@
+[
+  {"kind": "Deployment", "resource_id": "prod/web-a", "spec": {"replicas": 3, "template": {"spec": {"containers": [{"name": "app", "image": "x", "ports": [{"containerPort": 8080}]}]}}}},
+  {"kind": "Deployment", "resource_id": "prod/web-b", "spec": {"replicas": 5, "template": {"spec": {"containers": [{"name": "app", "image": "y", "ports": [{"containerPort": 8080}]}]}}}},
+  {"kind": "IAM.Role", "resource_id": "svc-reader", "policy": {"Action": "s3:GetObject", "Resource": "arn:aws:s3:::data"}}
+]
