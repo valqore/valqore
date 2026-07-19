@@ -1,0 +1,18 @@
+# A "product with digital elements" as most teams ship it today: no security
+# contact, no CVD policy, no manufacturer identity, no SBOM reference. Every one
+# of those is a prerequisite for meeting the CRA Article 14 24-hour clock.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: connected-gateway
+  namespace: prod
+spec:
+  replicas: 3
+  selector: {matchLabels: {app: connected-gateway}}
+  template:
+    metadata: {labels: {app: connected-gateway}}
+    spec:
+      containers:
+        - name: app
+          image: registry.example.com/connected-gateway:2.4.1
+          ports: [{containerPort: 8443}]
