@@ -1,5 +1,11 @@
 # Valqore benchmark — reproducible
 
+> **Coverage is only half the question.** This benchmark measures what Valqore
+> can see. For what it gets *wrong* — a run against three real repositories,
+> with the false positives named one by one and two defects that stopped the
+> run before it could start — see
+> [`precision/RESULTS.md`](precision/RESULTS.md).
+
 A **head-to-head** you can re-run yourself: Valqore vs other scanners on one
 shared corpus. No private artifacts — Valqore runs from the public, signed image.
 
