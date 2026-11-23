@@ -36,9 +36,13 @@ for two separate reasons:
    had already been evaluated*. The scan died on the way to printing its
    results.
 
-Both are fixed, with tests that fail against the unfixed parser. **They are not
-yet in a released image**, so until the next release the Terraform run below
-reproduces the crash rather than the table.
+Both are fixed, with tests that fail against the unfixed parser, and both shipped
+in **engine v1.20.1**, released the same day. This run was made on v1.19.0, which
+was the newest public image at the time: on v1.19.0 and earlier the Terraform
+command below reproduces the crash rather than the table. Use 1.20.1 rather than
+1.20.0: tagging 1.20.0 surfaced an unrelated defect in the API server's startup,
+and 1.20.1 is that fix. It does not affect `valqore evaluate`, and no published
+image before 1.20.0 carried it.
 
 What this cost is the point. The most downloaded AWS module there is could not
 be scanned at all, and we did not know, because no test and no benchmark had
